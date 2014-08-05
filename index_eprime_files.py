@@ -199,3 +199,5 @@ for i in range(len(all_subj)):
                           note_dict.get(all_notetype[i]))
 
 csvData = csvData[colnames]
+
+csvData.to_csv(CSVFILE, index=False)
