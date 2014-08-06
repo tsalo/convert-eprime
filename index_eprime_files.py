@@ -137,6 +137,10 @@ for i in all_tt:
 # one_text is the remaining un-paired text files.
 one_text = [[up_txt[i]] for i in range(len(up_txt))]
 
+# Determine subject IDs and timepoints for all files.
+# Assumes that files will be named according to convention 
+# blahblahblah_[subj]-[tp].txt or blahblahblah-[subj]-[tp].txt with no
+# other hyphens.
 ot_subj = [get_subject(one_text[i][0]) for i in range(len(one_text))]
 ot_tp = [get_timepoint(one_text[i][0]) for i in range(len(one_text))]
 tt_subj = [get_subject(two_text[i][0]) for i in range(len(two_text))]
@@ -163,7 +167,7 @@ all_notetype = ((["one_text"] * len(ot_subj)) +
                (["pair"] * len(p_subj)) +
                (["uaf"] * len(uaf_subj)))
 all_tp = ot_tp + tt_tp + tf_tp + p_tp + uaf_tp
-al_files = one_text + two_text + three_files + pair + uaf_files
+all_file_sets = one_text + two_text + three_files + pair + uaf_files
 
 for i in range(len(all_subj)):
     # Problem 1- How to make organization section as general as possible.
@@ -171,8 +175,8 @@ for i in range(len(all_subj)):
     try:
         print("Successfully organized %s-%s" % (all_subj[i], month))
         print("Moved:")
-        for dude in al_files[i]:
-            print(dude)
+        for set_ in all_file_sets[i]:
+            print(set_)
         orged = 1
         orgedwhen = time.strftime("%Y/%m/%d")
     except IOError:
