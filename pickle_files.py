@@ -27,7 +27,26 @@ headers = {"EP_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
                         "Probe.ACC", "IsSame", "CueStim[Block]",
                         "TrialType", "Cue.OnsetTime", "Probe.OnsetTime",
                         "Probe.RT", "Feedback", "Feedback.OnsetTime"],
+           "FAST_RISE_IE": [],
+           "FAST_RISE_IR": ["CNTRACSID", "SessionDate", "SessionTime",
+                            "Stimulus", "StimType", "StimuliAACC",
+                            "StimuliACRESP", "StimuliAOnsetTime",
+                            "StimuliARESP", "StimuliART", "StimuliBACC",
+                            "StimuliBCRESP", "StimuliBOnsetTime",
+                            "StimuliBRESP", "StimuliBRT"],
+           "FAST_RISE_AR": [],
            }
+
+merge_cols = {"FAST_RISE_IR": [["ItemsA", "ItemsB"]],
+              "EP2_AX": [],
+              }
+
+merge_col_names = {"FAST_RISE_IR": ["Trial"],
+                   "EP2_AX": [],
+                   }
+
+null_cols = {"FAST_RISE_IR": ["StimType"],
+             "EP2_AX": ["Probe.ACC"]}
 
 replace_dict = {".edat": {"Experiment": "ExperimentName",
                           "BlockList.Cycle": "Block",
@@ -35,6 +54,16 @@ replace_dict = {".edat": {"Experiment": "ExperimentName",
                 ".edat2": {"Experiment": "ExperimentName",
                            "CueStim": "CueStim[Block]",
                            "ProbeStim": "ProbeStim[Block]",
+                           "StimuliA.RTTime": "StimuliART",
+                           "StimuliB.RTTime": "StimuliBRT",
+                           "StimuliA.RESP": "StimuliARESP",
+                           "StimuliB.RESP": "StimuliBRESP",
+                           "StimuliA.CRESP": "StimuliACRESP",
+                           "StimuliB.CRESP": "StimuliBCRESP",
+                           "StimuliA.ACC": "StimuliAACC",
+                           "StimuliB.ACC": "StimuliBACC",
+                           "StimuliA.OnsetTime": "StimuliAOnsetTime",
+                           "StimuliB.OnsetTime": "StimuliBOnsetTime",
                            }
                 }
 
@@ -42,4 +71,5 @@ replace_dict = {".edat": {"Experiment": "ExperimentName",
 fill_block = ["BlockList", "EndBlock"]
 
 with open(code_dir + "/headers.pickle", "w") as file_:
-    pickle.dump([headers, replace_dict, fill_block], file_)
+    pickle.dump([headers, replace_dict, fill_block, merge_cols,
+                 merge_col_names, null_cols], file_)

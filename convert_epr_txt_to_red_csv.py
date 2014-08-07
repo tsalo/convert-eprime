@@ -6,7 +6,6 @@ Converts text file attached to edat to csv.
 """
 
 #pylint: disable-msg=C0103
-#import edit_csv as ec
 import os
 import pickle
 import inspect
@@ -15,13 +14,16 @@ import numpy.core.fromnumeric as fn
 
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 
-TEXT_FILE = "/home/tsalo/eprime_files_140801/EP2_AXCPT_Run1_epc164-4.txt"
-PAIR_FILE = "/home/tsalo/eprime_files_140801/EP2_AXCPT_Run1_epc164-4.edat2"
-OUT_FILE = "/home/tsalo/eprime_files_140801/epc164_4.csv"
+
+op = "/home/tsalo/eprime_files_140801/"
+TEXT_FILE = op + "EP2_AXCPT_Run1_epc164-4.txt"
+PAIR_FILE = op + "EP2_AXCPT_Run1_epc164-4.edat2"
+OUT_FILE = op + "FASTpilot001-1.csv"
 TASK = "EP2_AX"
 
 with open(code_dir + "/headers.pickle") as file_:
-        [headers, replace_dict, fill_block] = pickle.load(file_)
+        [headers, replace_dict, fill_block, merge_cols, merge_col_names,
+         null_cols] = pickle.load(file_)
 
 [filename, suffix] = os.path.splitext(PAIR_FILE)
 
@@ -37,6 +39,7 @@ def try_index(list_, val):
     try:
         return list_.index(val)
     except:
+        print(val)
         pass
 
 
@@ -45,6 +48,21 @@ def stripped(string):
     Removes unicode characters in string.
     """
     return "".join([val for val in string if 31 < ord(val) < 127])
+
+
+def merge_lists(lists, option):
+    if type(lists[0]) != list:
+        return lists
+    else:
+        merged = lists[0]
+        for iCol in range(len(lists)):
+            if option == "allNull":
+                merged = [lists[iCol][iRow] if lists[iCol][iRow] == "NULL" else
+                          merged[iRow] for iRow in range(len(merged))]
+            elif option == "allElse":
+                merged = [lists[iCol][iRow] if lists[iCol][iRow] != "NULL" else
+                          merged[iRow] for iRow in range(len(merged))]
+        return merged
 
 with open(TEXT_FILE, "r") as text:
     text_list = list(text)
@@ -103,32 +121,56 @@ for iCol in range(len(mat)):
     mat[iCol] = mat[iCol][:len(mat[iCol])-2]
 
 # Transpose mat.
-mat = [[row[col] for row in mat] for col in range(len(mat[0]))]
+tmat = [[row[col] for row in mat] for col in range(len(mat[0]))]
 
 # Replace text headers with edat headers (replacement dict). Unnecessary if
 # your processing scripts are built around text files instead of edat files.
-mat[0] = [replacements.get(item, item) for item in mat[0]]
+tmat[0] = [replacements.get(item, item) for item in tmat[0]]
+
+
+fo = open('/home/tsalo/Desktop/stuff.csv', 'wb')
+file_ = csv.writer(fo)
+for row in tmat:
+    file_.writerow(row)
+fo.close()
 
 # Pare mat down based on desired headers
 # Create list of columns with relevant headers.
-main_array = [try_index(mat[0], hed) for hed in header_list if
-              try_index(mat[0], hed) is not None]
+main_array = [tmat[0].index(hed) for hed in header_list]
 
-# Make empty (zeros) list of lists and fill with relevant data from
-# wholefile.
-out_struct = [[mat[iRow][col] for col in main_array]
-              for iRow in range(fn.size(mat, 0))]
+# Create column from which null index will be created.
+null_col_names = null_cols.get(TASK)
+
+nullCol = [main_array[header_list.index(colName)] for colName in
+           null_col_names]
+nullCols = [mat[colNum] for colNum in nullCol]
+mergedNulls = merge_lists(nullCols, "allNulls")
+null_idx = sorted([iRow for iRow in range(len(mergedNulls)) if
+                   mergedNulls[iRow] == "NULL"], reverse=True)
+
+# Merge any columns that need to be merged.
+mergeColList = merge_cols.get(TASK)
+mergeColNameList = merge_col_names.get(TASK)
+mergedCols = []
+for iMerge in range(len(mergeColNameList)):
+    mergeColNums = [tmat[0].index(hed) for hed in mergeColList[iMerge]]
+    mergeCols = [mat[col] for col in mergeColNums]
+    mergedCols.append(merge_lists(mergeCols, "allElse"))
+    mergedCols[iMerge][0] = mergeColNameList[iMerge]
+
+out_struct = [[tmat[iRow][col] for col in main_array] for iRow in
+              range(fn.size(tmat, 0))]
+
+# Transpose mergedCols
+if len(mergedCols) != 0:
+    tmergedCols = [[row[col] for row in mergedCols] for col in
+                   range(len(mergedCols[0]))]
+    for iRow in range(len(out_struct)):
+        out_struct[iRow] = out_struct[iRow] + tmergedCols[iRow]
 
 # Remove all instances of NULL by creating an index of NULL occurrences
 # and removing them from out_struct.
-null_idx = [list(set([iRow for col in out_struct[iRow] if col == "NULL"]))
-            for iRow in range(fn.size(out_struct, 0))]
-null_idx = sorted([val for sublist in null_idx for val in sublist],
-                  reverse=True)
 [out_struct.pop(i) for i in null_idx]
-
-# Write out csv.
-#ec.write(out_struct, OUT_FILE)
 
 try:
     fo = open(OUT_FILE, 'wb')
