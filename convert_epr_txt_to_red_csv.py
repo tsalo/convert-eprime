@@ -15,11 +15,12 @@ import numpy.core.fromnumeric as fn
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 
 
-op = "/home/tsalo/eprime_files_140801/"
-TEXT_FILE = op + "EP2_AXCPT_Run1_epc164-4.txt"
-PAIR_FILE = op + "EP2_AXCPT_Run1_epc164-4.edat2"
-OUT_FILE = op + "FASTpilot001-1.csv"
-TASK = "EP2_AX"
+op = "/home/tsalo/Desktop/FAST/"
+TEXT_FILE = op + "RISE_FMRI_ItemRecoga&bVer1-FASTpilot001-1.txt"
+PAIR_FILE = op + "RISE_FMRI_ItemRecoga&bVer1-FASTpilot001-1.edat2"
+OUT_FILE = op + "FASTpilot001-1_IR.csv"
+WHOLE_TEXT_FILE = '/home/tsalo/Desktop/FAST/stuff.csv'
+TASK = "FAST_RISE_IR"
 
 with open(code_dir + "/headers.pickle") as file_:
         [headers, replace_dict, fill_block, merge_cols, merge_col_names,
@@ -29,7 +30,7 @@ with open(code_dir + "/headers.pickle") as file_:
 
 header_list = headers.get(TASK)
 
-replacements = replace_dict.get(suffix)
+replacements = replace_dict.get(TASK).get(suffix)
 
 
 def try_index(list_, val):
@@ -51,6 +52,12 @@ def stripped(string):
 
 
 def merge_lists(lists, option):
+    """
+    Merges multiple lists into one list, with the default being the values of
+    the first list. It either replaces values with NULL if NULL is in that
+    position in another list or replaces NULL with values if values are in that
+    position in another list.
+    """
     if type(lists[0]) != list:
         return lists
     else:
@@ -68,10 +75,10 @@ with open(TEXT_FILE, "r") as text:
     text_list = list(text)
 
 # Remove unicode characters.
-filtered2 = [stripped(x) for x in text_list]
+filtered = [stripped(x) for x in text_list]
 
-initIdx = [i for i, x in enumerate(filtered2) if x == "*** LogFrame Start ***"]
-endIdx = [i for i, x in enumerate(filtered2) if x == "*** LogFrame End ***"]
+initIdx = [i for i, x in enumerate(filtered) if x == "*** LogFrame Start ***"]
+endIdx = [i for i, x in enumerate(filtered) if x == "*** LogFrame End ***"]
 
 if len(initIdx) != len(endIdx) or initIdx[0] >= endIdx[0]:
     raise ValueError("LogFrame Starts and Ends do not match up.")
@@ -81,8 +88,8 @@ unsplit_list = []
 
 # Find column headers and remove duplicates.
 for iLog in range(len(initIdx)):
-    one_row = filtered2[initIdx[iLog]+1:endIdx[iLog]]
-    unsplit_list.append(filtered2[initIdx[iLog]+1:endIdx[iLog]])
+    one_row = filtered[initIdx[iLog]+1:endIdx[iLog]]
+    unsplit_list.append(filtered[initIdx[iLog]+1:endIdx[iLog]])
     for jCol in range(len(one_row)):
         splitIdx = one_row[jCol].index(": ")
         all_headers.append(one_row[jCol][:splitIdx])
@@ -127,8 +134,7 @@ tmat = [[row[col] for row in mat] for col in range(len(mat[0]))]
 # your processing scripts are built around text files instead of edat files.
 tmat[0] = [replacements.get(item, item) for item in tmat[0]]
 
-
-fo = open('/home/tsalo/Desktop/stuff.csv', 'wb')
+fo = open(WHOLE_TEXT_FILE, 'wb')
 file_ = csv.writer(fo)
 for row in tmat:
     file_.writerow(row)
