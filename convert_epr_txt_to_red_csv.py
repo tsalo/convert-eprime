@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon May  5 12:32:17 2014
-Converts text file attached to edat to csv.
+Converts text file attached to edat to csv. Will be converted to function after
+it's been thoroughly debugged.
 @author: tsalo
 """
 
@@ -13,7 +14,6 @@ import csv
 import numpy.core.fromnumeric as fn
 
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-
 
 op = "/home/tsalo/Desktop/FAST/"
 TEXT_FILE = op + "RISE_FMRI_ItemRecoga&bVer1-FASTpilot001-1.txt"
@@ -27,9 +27,7 @@ with open(code_dir + "/headers.pickle") as file_:
          null_cols] = pickle.load(file_)
 
 [filename, suffix] = os.path.splitext(PAIR_FILE)
-
 header_list = headers.get(TASK)
-
 replacements = replace_dict.get(TASK).get(suffix)
 
 

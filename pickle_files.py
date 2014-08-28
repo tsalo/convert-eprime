@@ -64,7 +64,8 @@ merge_col_names = {"FAST_RISE_IE": [],
 null_cols = {"FAST_RISE_IE": ["LeftStim"],
              "FAST_RISE_IR": ["StimType"],
              "FAST_RISE_AR": ["TrialType"],
-             "EP2_AX": ["Probe.ACC"]}
+             "EP2_AX": ["Probe.ACC"],
+             }
 
 # Could probably benefit from task specific replacements, considering how many
 # RISE requires.

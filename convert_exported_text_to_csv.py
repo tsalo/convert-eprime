@@ -33,12 +33,14 @@ HEADERS = {
     }
 
 import os
-import eprime_convert as ec
+import sys
+import csv
+import numpy.core.fromnumeric as fn
 
 
 def main(in_file, task):
     header_list = HEADERS.get(task)
-    ec._convert(in_file, header_list)
+    _convert(in_file, header_list)
 
 
 def try_index(list_, val):
@@ -65,10 +67,7 @@ def _det_file_type(in_file):
 
 
 def _convert(infile, header_list):
-    import csv
-    import numpy.core.fromnumeric as fn
-
-    delimiter_, rem_lines = ec._det_file_type(infile)
+    delimiter_, rem_lines = _det_file_type(infile)
     try:
         wholefile = list(csv.reader(open(infile, 'rb'),
                                     delimiter=delimiter_))
@@ -98,7 +97,7 @@ def _convert(infile, header_list):
     [out_struct.pop(i) for i in null_idx]
 
     # Write out and save csv file.
-    outfile = infile[:len(infile)-4] + "_clean_ett.csv"
+    outfile = infile[:len(infile)-4] + "_clean.csv"
     try:
         fo = open(outfile, 'wb')
         file_ = csv.writer(fo)
@@ -110,3 +109,6 @@ def _convert(infile, header_list):
         print("Can't open output file- %s" % outfile)
     finally:
         fo.close()
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2])
