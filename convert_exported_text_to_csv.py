@@ -30,6 +30,17 @@ HEADERS = {
                  'Probe.ACC', 'IsSame', 'CueStim[Block]',
                  'TrialType', 'Cue.OnsetTime', 'Probe.OnsetTime',
                  'Probe.RT', 'Feedback', 'Feedback.OnsetTime'],
+    'AGG_ES': ['Subject', 'BlockNum', 'MiniBlockNum', 'DisplayStim.RT',
+               'DisplayStim.OnsetTime', 'DisplayStim.ACC',
+               'StartScan.OffsetTime', 'TrialNum', 'TrialType', 'Emotion'],
+    }
+
+REMNULLS = {
+    'EP_AX': True,
+    'EP2_AX': True,
+    'PACT_AX': True,
+    'EP2_ICET': True,
+    'AGG_ES': False,
     }
 
 import os
@@ -40,7 +51,52 @@ import numpy.core.fromnumeric as fn
 
 def main(in_file, task):
     header_list = HEADERS.get(task)
-    _convert(in_file, header_list)
+    delimiter_, rem_lines = _det_file_type(in_file)
+    try:
+        wholefile = list(csv.reader(open(in_file, 'rb'),
+                                    delimiter=delimiter_))
+        main_array = []
+    except IOError:
+        print("Can't open input file- %s" % in_file)
+
+    # Remove first three rows.
+    for iRow in range(rem_lines):
+        wholefile.pop(0)
+
+    # Create list of columns with relevant headers.
+    main_array = [try_index(wholefile[0], hed) for hed in header_list if
+                  try_index(wholefile[0], hed) is not None]
+
+    # Make empty (zeros) list of lists and fill with relevant data from
+    # wholefile.
+    out_arr = [[wholefile[iRow][col] for col in main_array]
+               for iRow in range(fn.size(wholefile, 0))]
+
+    # Either remove all instances of NULL or convert all instances of NULL to
+    # NaN.
+    if REMNULLS.get(task):
+        null_idx = [list(set([iRow for col in out_arr[iRow] if col == "NULL"]))
+                    for iRow in range(fn.size(out_arr, 0))]
+        null_idx = sorted([val for sublist in null_idx for val in sublist],
+                          reverse=True)
+        [out_arr.pop(i) for i in null_idx]
+    else:
+        out_arr = [[word.replace("NULL", "NaN") for word in row]
+                   for row in out_arr]
+
+    # Write out and save csv file.
+    outfile = in_file[:len(in_file)-3] + "csv"
+    try:
+        fo = open(outfile, 'wb')
+        file_ = csv.writer(fo)
+        for row in out_arr:
+            file_.writerow(row)
+
+        print("Output file successfully created- %s" % outfile)
+    except IOError:
+        print("Can't open output file- %s" % outfile)
+    finally:
+        fo.close()
 
 
 def try_index(list_, val):
@@ -65,50 +121,6 @@ def _det_file_type(in_file):
 
     return delimiter_, rem_lines
 
-
-def _convert(infile, header_list):
-    delimiter_, rem_lines = _det_file_type(infile)
-    try:
-        wholefile = list(csv.reader(open(infile, 'rb'),
-                                    delimiter=delimiter_))
-        main_array = []
-    except IOError:
-        print("Can't open input file- %s" % infile)
-
-    # Remove first three rows.
-    for iRow in range(rem_lines):
-        wholefile.pop(0)
-
-    # Create list of columns with relevant headers.
-    main_array = [try_index(wholefile[0], hed) for hed in header_list if
-                  try_index(wholefile[0], hed) is not None]
-
-    # Make empty (zeros) list of lists and fill with relevant data from
-    # wholefile.
-    out_struct = [[wholefile[iRow][col] for col in main_array]
-                  for iRow in range(fn.size(wholefile, 0))]
-
-    # Remove all instances of NULL by creating an index of NULL occurrences
-    # and removing them from wholefile.
-    null_idx = [list(set([iRow for col in out_struct[iRow] if col == "NULL"]))
-                for iRow in range(fn.size(out_struct, 0))]
-    null_idx = sorted([val for sublist in null_idx for val in sublist],
-                      reverse=True)
-    [out_struct.pop(i) for i in null_idx]
-
-    # Write out and save csv file.
-    outfile = infile[:len(infile)-4] + "_clean.csv"
-    try:
-        fo = open(outfile, 'wb')
-        file_ = csv.writer(fo)
-        for row in out_struct:
-            file_.writerow(row)
-
-        print("Output file successfully created- %s" % outfile)
-    except IOError:
-        print("Can't open output file- %s" % outfile)
-    finally:
-        fo.close()
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2])
