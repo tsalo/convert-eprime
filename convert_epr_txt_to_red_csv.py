@@ -99,7 +99,7 @@ for iLog in range(len(row_start_idx)):
 
 unique_headers = list(set(all_headers))
 
-# Preallocate list of lists comprised of NULLs.
+# Preallocate list of lists composed of NULLs.
 null_col = ["NULL"] * (len(row_start_idx)+1)
 data_matrix = [null_col[:] for i_col in range(len(unique_headers))]
 
@@ -188,4 +188,4 @@ except IOError:
 finally:
     fo.close()
 
-print("saved " + OUT_FILE)
+print("Saved " + OUT_FILE)

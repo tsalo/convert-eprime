@@ -30,9 +30,12 @@ HEADERS = {
                  'Probe.ACC', 'IsSame', 'CueStim[Block]',
                  'TrialType', 'Cue.OnsetTime', 'Probe.OnsetTime',
                  'Probe.RT', 'Feedback', 'Feedback.OnsetTime'],
-    'AGG_ES': ['Subject', 'BlockNum', 'MiniBlockNum', 'DisplayStim.RT',
-               'DisplayStim.OnsetTime', 'DisplayStim.ACC',
+    'AGG_ES': ['Subject', 'Group', 'BlockNum', 'MiniBlockNum',
+               'DisplayStim.RT', 'DisplayStim.OnsetTime', 'DisplayStim.ACC',
                'StartScan.OffsetTime', 'TrialNum', 'TrialType', 'Emotion'],
+    'AGG_CS': ['Subject', 'Group', 'CSD', 'BlockNum', 'Procedure[Trial]',
+               'Procedure[SubTrial]', 'Go.RT', 'Go.OnsetTime', 'Go.ACC',
+               'TrialType', 'DisplayRating.RESP', 'Rateing[SubTrial]']
     }
 
 REMNULLS = {
@@ -41,6 +44,7 @@ REMNULLS = {
     'PACT_AX': True,
     'EP2_ICET': True,
     'AGG_ES': False,
+    'AGG_CS': False,
     }
 
 import os
