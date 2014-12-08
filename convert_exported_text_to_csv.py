@@ -14,37 +14,42 @@ match for those found in the edat text for the function to work.
 """
 
 HEADERS = {
-    'EP_AX': ['Subject', 'Group', 'ExperimentName', 'Session', 'Age',
-              'Handedness', 'Sex', 'Block', 'Cue.RT', 'Cue.ACC',
-              'Probe.RT', 'Probe.ACC', 'TrialType', 'Cue.OnsetTime',
-              'Probe.OnsetTime', 'Cue', 'SessionDate'],
-    'EP2_AX': ['Subject', 'Group', 'Session', 'Age', 'ExperimentName',
-               'Handedness', 'Sex', 'BlockNum', 'Cue.RT', 'Cue.ACC',
-               'Probe.RT', 'Probe.ACC', 'TrialType', 'Cue.OnsetTime',
-               'Probe.OnsetTime', 'CueStim[Block]', 'SessionDate'],
-    'PACT_AX': ['Subject', 'Group', 'ExperimentName', 'Session', 'Age',
-                'Handedness', 'Sex', 'BlockList', 'Cue.RT', 'Cue.ACC',
-                'Probe.RT', 'Probe.ACC', 'TrialType', 'Cue.OnsetTime',
-                'Probe.OnsetTime', 'Cue', 'SessionDate'],
-    'EP2_ICET': ['Subject', 'BlockNum', 'ExperimentName', 'TrialNum',
-                 'Probe.ACC', 'IsSame', 'CueStim[Block]',
-                 'TrialType', 'Cue.OnsetTime', 'Probe.OnsetTime',
-                 'Probe.RT', 'Feedback', 'Feedback.OnsetTime'],
-    'AGG_ES': ['Subject', 'Group', 'BlockNum', 'MiniBlockNum',
-               'DisplayStim.RT', 'DisplayStim.OnsetTime', 'DisplayStim.ACC',
-               'StartScan.OffsetTime', 'TrialNum', 'TrialType', 'Emotion'],
-    'AGG_CS': ['Subject', 'Group', 'CSD', 'BlockNum', 'Procedure[Trial]',
-               'Procedure[SubTrial]', 'Go.RT', 'Go.OnsetTime', 'Go.ACC',
-               'TrialType', 'DisplayRating.RESP', 'Rateing[SubTrial]']
+    "EP_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
+              "Handedness", "Sex", "Block", "Cue.RT", "Cue.ACC",
+              "Probe.RT", "Probe.ACC", "TrialType", "Cue.OnsetTime",
+              "Probe.OnsetTime", "Cue", "SessionDate"],
+    "EP2_AX": ["Subject", "Group", "Session", "Age", "ExperimentName",
+               "Handedness", "Sex", "BlockNum", "Cue.RT", "Cue.ACC",
+               "Probe.RT", "Probe.ACC", "TrialType", "Cue.OnsetTime",
+               "Probe.OnsetTime", "CueStim[Block]", "SessionDate"],
+    "PACT_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
+                "Handedness", "Sex", "BlockList", "Cue.RT", "Cue.ACC",
+                "Probe.RT", "Probe.ACC", "TrialType", "Cue.OnsetTime",
+                "Probe.OnsetTime", "Cue", "SessionDate"],
+    "EP2_ICET": ["Subject", "BlockNum", "ExperimentName", "TrialNum",
+                 "Probe.ACC", "IsSame", "CueStim[Block]",
+                 "TrialType", "Cue.OnsetTime", "Probe.OnsetTime",
+                 "Probe.RT", "Feedback", "Feedback.OnsetTime"],
+    "AGG_ES": ["Subject", "Group", "BlockNum", "MiniBlockNum",
+               "DisplayStim.RT", "DisplayStim.OnsetTime", "DisplayStim.ACC",
+               "StartScan.OffsetTime", "TrialNum", "TrialType", "Emotion"],
+    "AGG_CS": ["Subject", "Group", "CSD", "BlockNum", "Procedure[Trial]",
+               "Procedure[SubTrial]", "Go.RT", "Go.OnsetTime", "Go.ACC",
+               "TrialType", "DisplayRating.RESP", "Rateing[SubTrial]"],
+    "AGG_Reapp": ["Subject", "Group", "TrialNum", "Rating.RESP", "Rating.RT",
+                  "Rating.OnsetTime", "StimulusImage.OnsetTime",
+                  "Cue.OnsetTime", "PicValence", "BlockCue",
+                  "TrialOrder.Sample"],
     }
 
 REMNULLS = {
-    'EP_AX': True,
-    'EP2_AX': True,
-    'PACT_AX': True,
-    'EP2_ICET': True,
-    'AGG_ES': False,
-    'AGG_CS': False,
+    "EP_AX": True,
+    "EP2_AX": True,
+    "PACT_AX": True,
+    "EP2_ICET": True,
+    "AGG_ES": False,
+    "AGG_CS": False,
+    "AGG_Reapp": True,
     }
 
 import os
@@ -57,7 +62,7 @@ def main(in_file, task):
     header_list = HEADERS.get(task)
     delimiter_, rem_lines = _det_file_type(in_file)
     try:
-        wholefile = list(csv.reader(open(in_file, 'rb'),
+        wholefile = list(csv.reader(open(in_file, "rb"),
                                     delimiter=delimiter_))
         main_array = []
     except IOError:
@@ -91,7 +96,7 @@ def main(in_file, task):
     # Write out and save csv file.
     outfile = in_file[:len(in_file)-3] + "csv"
     try:
-        fo = open(outfile, 'wb')
+        fo = open(outfile, "wb")
         file_ = csv.writer(fo)
         for row in out_arr:
             file_.writerow(row)
@@ -113,10 +118,10 @@ def try_index(list_, val):
 def _det_file_type(in_file):
     [fn, sf] = os.path.splitext(in_file)
     if sf == ".csv":
-        delimiter_ = ','
+        delimiter_ = ","
         rem_lines = 0
     elif sf == ".txt":
-        delimiter_ = '\t'
+        delimiter_ = "\t"
         rem_lines = 3
     elif len(in_file) == 0:
         raise ValueError("Input file name is empty.")
