@@ -2,7 +2,7 @@
 """
 Created on Thu May 22 14:09:37 2014
 Designed to check for the existence of paired edat/text files in a folder.
-It will flag text files that do not have a paired edat or who have a paired
+It will flag text files that do not have a paired edat or which have a paired
 text (two text files).
 @author: tsalo
 """
