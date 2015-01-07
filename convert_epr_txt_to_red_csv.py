@@ -60,10 +60,10 @@ def merge_lists(lists, option):
     else:
         merged = lists[0]
         for i_col in range(len(lists)):
-            if option == "allNull":
+            if option == "all_null":
                 merged = [lists[i_col][i_row] if lists[i_col][i_row] == "NULL"
                           else merged[i_row] for i_row in range(len(merged))]
-            elif option == "allElse":
+            elif option == "all_else":
                 merged = [lists[i_col][i_row] if lists[i_col][i_row] != "NULL"
                           else merged[i_row] for i_row in range(len(merged))]
         return merged
@@ -89,10 +89,10 @@ if (len(row_start_idx) != len(row_end_idx) or
 all_headers = []
 data_by_rows = []
 
-for iLog in range(len(row_start_idx)):
-    one_row = filtered_text_list[row_start_idx[iLog]+1:row_end_idx[iLog]]
-    data_by_rows.append(filtered_text_list[row_start_idx[iLog] + 1:
-                                           row_end_idx[iLog]])
+for i_row in range(len(row_start_idx)):
+    one_row = filtered_text_list[row_start_idx[i_row]+1:row_end_idx[i_row]]
+    data_by_rows.append(filtered_text_list[row_start_idx[i_row] + 1:
+                                           row_end_idx[i_row]])
     for j_col in range(len(one_row)):
         split_header_idx = one_row[j_col].index(": ")
         all_headers.append(one_row[j_col][:split_header_idx])
@@ -147,7 +147,7 @@ null_col_names = null_cols.get(TASK)
 nullCol = [main_array[header_list.index(colName)] for colName in
            null_col_names]
 nullCols = [data_matrix[colNum] for colNum in nullCol]
-mergedNulls = merge_lists(nullCols, "allNulls")
+mergedNulls = merge_lists(nullCols, "all_null")
 null_idx = sorted([i_row for i_row in range(len(mergedNulls)) if
                    mergedNulls[i_row] == "NULL"], reverse=True)
 
@@ -159,7 +159,7 @@ for i_merge in range(len(merge_col_names_list)):
     merge_col_nums = [transposed_data_matrix[0].index(hed) for hed in
                       merge_col_list[i_merge]]
     merge_cols = [data_matrix[col] for col in merge_col_nums]
-    merged_cols.append(merge_lists(merge_cols, "allElse"))
+    merged_cols.append(merge_lists(merge_cols, "all_else"))
     merged_cols[i_merge][0] = merge_col_names_list[i_merge]
 
 out_struct = [[transposed_data_matrix[i_row][col] for col in main_array] for

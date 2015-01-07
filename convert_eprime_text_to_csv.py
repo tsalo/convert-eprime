@@ -40,10 +40,10 @@ def merge_lists(lists, option):
     else:
         merged = lists[0]
         for i_col in range(len(lists)):
-            if option == "allNull":
+            if option == "all_null":
                 merged = [lists[i_col][i_row] if lists[i_col][i_row] == "NULL"
                           else merged[i_row] for i_row in range(len(merged))]
-            elif option == "allElse":
+            elif option == "all_else":
                 merged = [lists[i_col][i_row] if lists[i_col][i_row] != "NULL"
                           else merged[i_row] for i_row in range(len(merged))]
         return merged
@@ -71,10 +71,10 @@ def main(text_file, out_file):
     all_headers = []
     data_by_rows = []
 
-    for iLog in range(len(row_start_idx)):
-        one_row = filtered_text_list[row_start_idx[iLog]+1:row_end_idx[iLog]]
-        data_by_rows.append(filtered_text_list[row_start_idx[iLog] + 1:
-                                               row_end_idx[iLog]])
+    for i_row in range(len(row_start_idx)):
+        one_row = filtered_text_list[row_start_idx[i_row]+1:row_end_idx[i_row]]
+        data_by_rows.append(filtered_text_list[row_start_idx[i_row] + 1:
+                                               row_end_idx[i_row]])
         for j_col in range(len(one_row)):
             split_header_idx = one_row[j_col].index(": ")
             all_headers.append(one_row[j_col][:split_header_idx])
@@ -93,18 +93,20 @@ def main(text_file, out_file):
     for i_row in range(len(row_start_idx)):
         for j_col in range(len(data_by_rows[i_row])):
             split_header_idx = data_by_rows[i_row][j_col].index(": ")
-            for kHead in range(len(unique_headers)):
+            for k_header in range(len(unique_headers)):
                 if (data_by_rows[i_row][j_col][:split_header_idx] ==
-                        unique_headers[kHead]):
-                    data_matrix[kHead][i_row + 1] = (data_by_rows[i_row][j_col]
-                                                     [split_header_idx + 2:])
+                        unique_headers[k_header]):
+                    data_matrix[k_header][i_row + 1] = (data_by_rows[i_row][j_col]
+                                                        [split_header_idx + 2:])
 
     # If a column is all NULLs except for the header and one value at the
     # bottom, fill the column up with that bottom value.
     for i_col in range(len(data_matrix)):
         null_row_idx = [i for i, x in enumerate(data_matrix[i_col]) if x != "NULL"]
-        if len(null_row_idx) == 2 and (null_row_idx[1] == len(data_matrix[i_col]) - 1 or null_row_idx[1] == len(data_matrix[i_col]) - 2):
-            data_matrix[i_col][1:len(data_matrix[i_col])] = ([data_matrix[i_col][null_row_idx[1]]] * (len(data_matrix[i_col]) - 1))
+        if len(null_row_idx) == 2 and (null_row_idx[1] == len(data_matrix[i_col]) - 1
+                                       or null_row_idx[1] == len(data_matrix[i_col]) - 2):
+            data_matrix[i_col][1:len(data_matrix[i_col])] = ([data_matrix[i_col][null_row_idx[1]]] *
+                                                             (len(data_matrix[i_col]) - 1))
 
         data_matrix[i_col] = data_matrix[i_col][:len(data_matrix[i_col]) - 2]
 
