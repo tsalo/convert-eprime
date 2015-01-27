@@ -41,11 +41,11 @@ def merge_lists(lists, option):
         merged = lists[0]
         for i_col in range(len(lists)):
             if option == "all_null":
-                merged = [lists[i_col][i_row] if lists[i_col][i_row] == "NULL"
-                          else merged[i_row] for i_row in range(len(merged))]
+                merged = [lists[i_col][j_row] if lists[i_col][j_row] == "NULL"
+                          else merged[j_row] for j_row in range(len(merged))]
             elif option == "all_else":
-                merged = [lists[i_col][i_row] if lists[i_col][i_row] != "NULL"
-                          else merged[i_row] for i_row in range(len(merged))]
+                merged = [lists[i_col][j_row] if lists[i_col][j_row] != "NULL"
+                          else merged[j_row] for j_row in range(len(merged))]
         return merged
 
 
