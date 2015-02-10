@@ -4,6 +4,7 @@ Created on Thu May 22 14:09:37 2014
 Designed to check for the existence of paired edat/text files in a folder.
 It will flag text files that do not have a paired edat or which have a paired
 text (two text files).
+Somewhat functional, but barely readable, as of 150209.
 @author: tsalo
 """
 import os
@@ -15,8 +16,8 @@ import time
 CSVFILE = "/home/tsalo/AX_Archive_050814/behav_sheet.csv"
 DIRECTORY = "/home/tsalo/AX_Archive_050814/"
 task = "EP2_AX"
-csvData = pd.read_csv(CSVFILE)
-colnames = csvData.columns.tolist()
+csv_data = pd.read_csv(CSVFILE)
+colnames = csv_data.columns.tolist()
 
 note_dict = {
     "one_text": "One text file- must be recovered.",
@@ -42,6 +43,9 @@ tp_dict = {
 
 
 def get_subject(text_file):
+    """
+    Splits file name by hyphens to determine subject ID.
+    """
     path_name, sf = os.path.splitext(text_file)
     fname = os.path.basename(path_name)
 
@@ -60,6 +64,9 @@ def get_subject(text_file):
 
 
 def get_timepoint(text_file):
+    """
+    Splits file name by hyphens to determine timepoint.
+    """
     path_name, sf = os.path.splitext(text_file)
     fname = os.path.basename(path_name)
     last_hyph = fname.rindex('-')
@@ -67,14 +74,14 @@ def get_timepoint(text_file):
     return tp
 
 
-def add_subject(csvData, subj, timepoint, orged, orgedwhen, conved, convedwhen,
-                notes):
+def add_subject(csv_data, subj, timepoint, orged, orgedwhen, conved,
+                convedwhen, notes):
     row = pd.DataFrame([dict(Subject=subj, Timepoint=timepoint,
                              Organized=orged, Date_Organized=orgedwhen,
                              Converted=conved, Date_Converted=convedwhen,
                              Notes=notes)])
-    csvData = csvData.append(row, ignore_index=False)
-    return csvData
+    csv_data = csv_data.append(row, ignore_index=False)
+    return csv_data
 
 edat_files = glob.glob(DIRECTORY + "*.edat*")
 text_files = glob.glob(DIRECTORY + "*-*.txt")
@@ -138,7 +145,7 @@ for i in all_tt:
 one_text = [[up_txt[i]] for i in range(len(up_txt))]
 
 # Determine subject IDs and timepoints for all files.
-# Assumes that files will be named according to convention 
+# Assumes that files will be named according to convention
 # blahblahblah_[subj]-[tp].txt or blahblahblah-[subj]-[tp].txt with no
 # other hyphens.
 ot_subj = [get_subject(one_text[i][0]) for i in range(len(one_text))]
@@ -198,10 +205,10 @@ for i in range(len(all_subj)):
         conved = 0
         convedwhen = ""
 
-    csvData = add_subject(csvData, all_subj[i], all_tp[i], orged,
-                          orgedwhen, conved, convedwhen,
-                          note_dict.get(all_notetype[i]))
+    csv_data = add_subject(csv_data, all_subj[i], all_tp[i], orged,
+                           orgedwhen, conved, convedwhen,
+                           note_dict.get(all_notetype[i]))
 
-csvData = csvData[colnames]
+csv_data = csv_data[colnames]
 
-csvData.to_csv(CSVFILE, index=False)
+csv_data.to_csv(CSVFILE, index=False)
