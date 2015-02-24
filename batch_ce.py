@@ -4,11 +4,12 @@ Created on Thu Nov  6 13:21:45 2014
 
 @author: tsalo
 """
+import convert_eprime as ce
 
-import convert_eprime_text_to_csv as ce
+op = "/home/tsalo/behav/Archive_20150128/"
+text_file = op + "EP2_AXCPT_Run1_epc198-3.txt"
+edat_file = op + "EP2_AXCPT_Run1_epc198-3.edat2"
+out_file = op + "epc198.csv"
+task = "EP2_AX"
 
-op = "/home/tsalo/Desktop/FAST/"
-text_file = op + "RISE_FMRI_ItemRecoga&bVer1-FASTpilot001-1.txt"
-out_file = op + "FASTpilot001-1_IR.csv"
-
-ce.main(text_file, out_file)
+ce.text_to_csv(text_file, edat_file, out_file, task)

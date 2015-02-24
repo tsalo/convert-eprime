@@ -12,54 +12,19 @@ list of relevant column names as the definition. The headers must be an exact
 match for those found in the edat text for the function to work.
 @author: salo
 """
-
-HEADERS = {
-    "EP_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
-              "Handedness", "Sex", "Block", "Cue.RT", "Cue.ACC",
-              "Probe.RT", "Probe.ACC", "TrialType", "Cue.OnsetTime",
-              "Probe.OnsetTime", "Cue", "SessionDate"],
-    "EP2_AX": ["Subject", "Group", "Session", "Age", "ExperimentName",
-               "Handedness", "Sex", "BlockNum", "Cue.RT", "Cue.ACC",
-               "Probe.RT", "Probe.ACC", "TrialType", "Cue.OnsetTime",
-               "Probe.OnsetTime", "CueStim[Block]", "SessionDate"],
-    "PACT_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
-                "Handedness", "Sex", "BlockList", "Cue.RT", "Cue.ACC",
-                "Probe.RT", "Probe.ACC", "TrialType", "Cue.OnsetTime",
-                "Probe.OnsetTime", "Cue", "SessionDate"],
-    "EP2_ICET": ["Subject", "BlockNum", "ExperimentName", "TrialNum",
-                 "Probe.ACC", "IsSame", "CueStim[Block]",
-                 "TrialType", "Cue.OnsetTime", "Probe.OnsetTime",
-                 "Probe.RT", "Feedback", "Feedback.OnsetTime"],
-    "AGG_ES": ["Subject", "Group", "BlockNum", "MiniBlockNum",
-               "DisplayStim.RT", "DisplayStim.OnsetTime", "DisplayStim.ACC",
-               "StartScan.OffsetTime", "TrialNum", "TrialType", "Emotion"],
-    "AGG_CS": ["Subject", "Group", "CSD", "BlockNum", "Procedure[Trial]",
-               "Procedure[SubTrial]", "Go.RT", "Go.OnsetTime", "Go.ACC",
-               "TrialType", "DisplayRating.RESP", "Rateing[SubTrial]"],
-    "AGG_Reapp": ["Subject", "Group", "TrialNum", "Rating.RESP", "Rating.RT",
-                  "Rating.OnsetTime", "StimulusImage.OnsetTime",
-                  "Cue.OnsetTime", "PicValence", "BlockCue",
-                  "TrialOrder.Sample"],
-    }
-
-REMNULLS = {
-    "EP_AX": True,
-    "EP2_AX": True,
-    "PACT_AX": True,
-    "EP2_ICET": True,
-    "AGG_ES": False,
-    "AGG_CS": False,
-    "AGG_Reapp": True,
-    }
-
 import os
 import sys
 import csv
 import numpy.core.fromnumeric as fn
+import pickle
+import inspect
 
+code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
+with open(code_dir + "/headers.pickle") as file_:
+    [headers, remnulls, _, _, _, _, _] = pickle.load(file_)
 
 def main(in_file, task):
-    header_list = HEADERS.get(task)
+    header_list = headers.get(task)
     delimiter_, rem_lines = _det_file_type(in_file)
     try:
         wholefile = list(csv.reader(open(in_file, "rb"),
@@ -83,7 +48,7 @@ def main(in_file, task):
 
     # Either remove all instances of NULL or convert all instances of NULL to
     # NaN.
-    if REMNULLS.get(task):
+    if remnulls.get(task):
         null_idx = [list(set([iRow for col in out_arr[iRow] if col == "NULL"]))
                     for iRow in range(fn.size(out_arr, 0))]
         null_idx = sorted([val for sublist in null_idx for val in sublist],
