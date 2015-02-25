@@ -62,8 +62,9 @@ headers = {
                      "LeftStim", "RightStim", "StimuliACC",
                      "StimuliCRESP", "StimuliOnsetTime", "StimuliRESP",
                      "StimuliRT", "Stimulus", "TrialType"],
-    "NICNAC_CUE": ["Crave.ACC", "Crave.CRESP", "Crave.RESP", "Crave.RT",
-                   "Crave.RTTime", "FixDur"],
+    "NICNAC_CUE": ["Crave.CRESP", "Crave.RESP", "Crave.RT",
+                   "Crave.RTTime", "FixDur", "Procedure[Block]", "Duration",
+                   "PicNeut1.OnsetTime", "PicSmok1.OnsetTime"],
     }
 
 remnulls = {
@@ -76,7 +77,7 @@ remnulls = {
     "AGG_ES": False,
     "AGG_CS": False,
     "AGG_Reapp": True,
-    "NICNAC_CUE": True,
+    "NICNAC_CUE": False,
     }
 
 merge_cols = {"FAST_RISE_IE": [],
