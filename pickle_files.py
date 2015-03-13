@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Aug  1 12:40:07 2014
-
+Writes out pickle file with a number of dictionaries used by convert_eprime.py. All of your task-specific information goes here.
 @author: tsalo
 """
 
