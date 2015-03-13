@@ -11,6 +11,7 @@ import os
 
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 
+# Specific columns to pull. Outputted rcsvs (reduced csv files) will only contain these columns.
 headers = {
     "EP_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
               "Handedness", "Sex", "Block", "Cue.RT", "Cue.ACC",
@@ -67,6 +68,7 @@ headers = {
                    "PicNeut1.OnsetTime", "PicSmok1.OnsetTime"],
     }
 
+# Whether or not to remove NULL rows (rows where there are empty cells that have been filled with NULL).
 remnulls = {
     "EP_AX": True,
     "bEP_AX": True,
@@ -80,6 +82,7 @@ remnulls = {
     "NICNAC_CUE": False,
     }
 
+# Headers of columns to merge if they occur.
 merge_cols = {"FAST_RISE_IE": [],
               "FAST_RISE_IR": [["ItemsA", "ItemsB"]],
               "FAST_RISE_AR": [],
@@ -89,6 +92,7 @@ merge_cols = {"FAST_RISE_IE": [],
               "PACT_AX": [],
               }
 
+# Names of merged columns. Pairs up with merge_cols.
 merge_col_names = {"FAST_RISE_IE": [],
                    "FAST_RISE_IR": ["Trial"],
                    "FAST_RISE_AR": [],
@@ -98,14 +102,15 @@ merge_col_names = {"FAST_RISE_IE": [],
                    "PACT_AX": [],
                    }
 
+# Columns from which to define null rows (e.g. if the column has rows with NULL
+# values, remove those rows from the matrix).
 null_cols = {"FAST_RISE_IE": ["LeftStim"],
              "FAST_RISE_IR": ["StimType"],
              "FAST_RISE_AR": ["TrialType"],
              "EP2_AX": ["Probe.ACC"],
              }
 
-# Could probably benefit from task specific replacements, considering how many
-# RISE requires.
+# Column headers to replace (in order to match edat naming convention).
 replace_dict = {"FAST_RISE_IE": {".edat2": {"Trial": "BadTrial",
                                             "EncodingList.Sample": "Trial",
                                             "Stimuli.RESP": "StimuliRESP",
