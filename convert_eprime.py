@@ -136,10 +136,93 @@ def etext_to_csv(in_file, task):
         fo.close()
 
 
-def text_to_csv(text_file, edat_file, out_file, task):
+def text_to_csv(text_file, out_file):
     """
     Converts text file produced by successful completion of E-Prime experiment
-    to reduced csv.
+    to csv. Output from text_to_csv can be used to deduce information necessary
+    for text_to_rcsv (e.g. columns to merge, columns to rename, etc.)
+    """
+    
+    # Load the text file as a list.
+    with open(text_file, "r") as fo:
+        text_data = list(fo)
+    
+    # Remove unicode characters.
+    filtered_data = [_strip(row) for row in text_data]
+    
+    # Determine where rows begin and end.
+    start_index = [i_row for i_row, row in enumerate(filtered_data)
+                   if row == "*** LogFrame Start ***"]
+    end_index = [i_row for i_row, row in enumerate(filtered_data)
+                 if row == "*** LogFrame End ***"]
+    if (len(start_index) != len(end_index) or start_index[0] >= end_index[0]):
+        raise ValueError("LogFrame Starts and Ends do not match up.")
+    
+    # Find column headers and remove duplicates.
+    all_headers = []
+    data_by_rows = []
+    
+    for i_row in range(len(start_index)):
+        one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
+        data_by_rows.append(one_row)
+        for j_col in range(len(one_row)):
+            split_header_idx = one_row[j_col].index(": ")
+            all_headers.append(one_row[j_col][:split_header_idx])
+    
+    unique_headers = list(set(all_headers))
+    
+    # Preallocate list of lists composed of NULLs.
+    null_col = ["NULL"] * (len(start_index)+1)
+    data_matrix = [null_col[:] for i_col in range(len(unique_headers))]
+    
+    # Fill list of lists with relevant data from data_by_rows and
+    # unique_headers.
+    for i_col in range(len(unique_headers)):
+        data_matrix[i_col][0] = unique_headers[i_col]
+    
+    for i_row in range(len(start_index)):
+        for j_col in range(len(data_by_rows[i_row])):
+            split_header_idx = data_by_rows[i_row][j_col].index(": ")
+            for k_header in range(len(unique_headers)):
+                if (data_by_rows[i_row][j_col][:split_header_idx] ==
+                        unique_headers[k_header]):
+                    data_matrix[k_header][i_row + 1] = (data_by_rows[i_row]
+                                                        [j_col]
+                                                        [split_header_idx+2:])
+    
+    # If a column is all NULLs except for the header and one value at the
+    # bottom, fill the column up with that bottom value.
+    for i_col, col in enumerate(data_matrix):
+        rows_w_vals = [j_cell for j_cell, cell in enumerate(col) if
+                       cell != "NULL"]
+        # If the column is full of NULLs (except for the last row and the header), len(row_w_vals) = 2
+        if len(rows_w_vals) == 2 and (rows_w_vals[1] == len(col) - 1):
+            data_matrix[i_col][1:len(col)] = ([col[rows_w_vals[1]]] * (len(col) - 1))
+    
+        data_matrix[i_col] = col[:len(col) - 2]
+    
+    # Transpose data_matrix.
+    out_matrix = _transpose(data_matrix)
+    
+    try:
+        fo = open(out_file, 'wb')
+        file_ = csv.writer(fo)
+        for row in out_matrix:
+            file_.writerow(row)
+    
+        print("Output file successfully created- %s" % out_file)
+    except IOError:
+        print("Can't open output file- %s" % out_file)
+    finally:
+        fo.close()
+    
+    print("Saved " + out_file)
+
+
+def text_to_rcsv(text_file, edat_file, out_file, task):
+    """
+    Converts text file produced by successful completion of E-Prime experiment
+    to reduced csv. Much more complex than text_to_csv.
     """
 
     [_, edat_suffix] = os.path.splitext(edat_file)
