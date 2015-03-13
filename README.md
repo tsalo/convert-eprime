@@ -1,7 +1,7 @@
 convert-eprime
 ==============
 
-Python code meant to convert eprime files to csvs for analysis. In progress.
+Python code meant to convert E-Prime files to csvs for analysis. In progress.
 
 ## Code
 - [**index_eprime_files.py**](index_eprime_files.py): Looks through a folder and finds pairs of edat/txt files (successful runs) and all other combinations of the two filetypes. It notes these other files as requiring individual attention. Eventually it will call convert_eprime to automatically convert the text files in pairs.
