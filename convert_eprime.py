@@ -46,7 +46,7 @@ def etext_to_rcsv(in_file, task):
             wholefile = list(csv.reader(fo, delimiter=delimiter_))
         header_index = []
     except IOError:
-        print("Can't open input file- %s" % in_file)
+        print("Can't open input file- {0}".format(in_file))
 
     # Remove first three rows.
     for i_row in range(rem_lines):
@@ -81,9 +81,9 @@ def etext_to_rcsv(in_file, task):
         for row in out_arr:
             file_.writerow(row)
 
-        print("Output file successfully created- %s" % out_file)
+        print("Output file successfully created- {0}".format(out_file))
     except IOError:
-        print("Can't open output file- %s" % out_file)
+        print("Can't open output file- {0}".format(out_file))
     finally:
         fo.close()
 
@@ -162,9 +162,9 @@ def text_to_csv(text_file, out_file):
         for row in out_matrix:
             file_.writerow(row)
     
-        print("Output file successfully created- %s" % out_file)
+        print("Output file successfully created- {0}".format(out_file))
     except IOError:
-        print("Can't open output file- %s" % out_file)
+        print("Can't open output file- {0}".format(out_file))
     finally:
         fo.close()
     
@@ -296,9 +296,9 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
         for row in out_matrix:
             file_.writerow(row)
 
-        print("Output file successfully created- %s" % out_file)
+        print("Output file successfully created- {0}".format(out_file))
     except IOError:
-        print("Can't open output file- %s" % out_file)
+        print("Can't open output file- {0}".format(out_file))
     finally:
         fo.close()
 
@@ -382,12 +382,12 @@ if __name__ == "__main__":
                         if (inspect.isfunction(obj) and not name.startswith('_'))]
     
     if function_name not in module_functions:
-        raise IOError("Function " + function_name + " not in convert_eprime.")
+        raise IOError("Function {0} not in convert_eprime.".format(function_name))
     
     function = globals()[function_name]
     n_args = len(inspect.getargspec(function).args)
     
     if n_args != len(sys.argv) - 2:
-        raise IOError("Function " + function_name + " takes " + str(n_args) + ", not " + str(len(sys.argv) - 2) + ".")
+        raise IOError("Function {0} takes {1} arguments, not {2}.".format(function_name, n_args, len(sys.argv)-2))
 
     function(*sys.argv[2:])  
