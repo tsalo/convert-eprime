@@ -42,14 +42,18 @@ timepoint_dict = {
         "3": "24_MONTH",
         }
     }
+
 org_dir_dict = {"EP2_AX": "Z:\\Behavioral_Data\\3.0T\\AX-CPT_EP2\\organized\\",
-                "bEP2_AX": "Z:\\Behavioral_Data\\BehavBehav\\AX-CPT_EP2\\organized\\"}
+                "bEP2_AX": "Z:\\Behavioral_Data\\BehavBehav\\AX-CPT_EP2\\organized\\",
+                "EP2_ICET": "Z:\\Behavioral_Data\\3.0T\\ICE-T_EP2\\organized\\",}
 
 global note_dict, timepoint_dict, org_dir_dict
+
 
 def add_subject(csv_data, subj, timepoint, orged, orgedwhen, orgedby, conved,
                 convedwhen, convedby, notes):
     """
+    Adds information about subject's data to spreadsheet.
     """
     row = pd.DataFrame([dict(Subject=subj, Timepoint=timepoint,
                              Organized=orged, Date_Organized=orgedwhen,
@@ -76,6 +80,7 @@ def get_subject(text_file):
     end = all_hyphens[-1]
     subj = fname[beg+1:end]
     subj = subj.lower()
+
     return subj
 
 
@@ -83,9 +88,11 @@ def get_timepoint(text_file):
     """
     Splits file name by hyphens to determine timepoint.
     """
-    path_name, sf = os.path.splitext(text_file)
-    fname = os.path.basename(path_name)
+    path_with_filename, sf = os.path.splitext(text_file)
+    fname = os.path.basename(path_with_filename)
     fname = fname.replace("-Left_Handed", "")
+
+    # I forget what this does.
     all_underscores = [m.start() for m in re.finditer('_', fname)]
     last_hyphen = fname.rindex('-')
     if not all_underscores:
@@ -94,33 +101,48 @@ def get_timepoint(text_file):
         tp = fname[-1]
     else:
         tp = fname[all_underscores[-1]]
+
     return tp
 
 
-def organize_files(subjectId, timepoint, files, organized_dir):
+def organize_files(subject_id, timepoint, files, organized_dir):
     """
+    If there are no problems, copies edat and text files with known subject ID
+    and timepoint to organized directory and moves those files in the raw data dir
+    to a "done" subfolder.
+    
+    If the file already exists in the destination directory, it does not copy or
+    move the file and returns a note to that effect.
     """
     note = ""
     for file_ in files:
-        dir_, file_name = os.path.split(file_)
-        org_dir = organized_dir + subjectId + "\\" + timepoint
+        orig_dir, file_name = os.path.split(file_)
+        
+        # Create the destination dir if it doesn't already exist.
+        org_dir = os.path.join(organized_dir, subject_id, timepoint)
         if not os.path.exists(org_dir):
             os.makedirs(org_dir)
+
+        # If the file does not exist in the destination dir, copy it there and
+        # move the original to a "done" subdir.
+        # If it does, return a note saying that the file exists.
         if os.path.isfile(org_dir + file_name):
-            note = "File exists in org_dir. "
+            note += "File {0} already exists in {1}. ".format(file_name, org_dir)
         else:
             shutil.copy(file_, org_dir)
-            out_dir = dir_ + "\\done\\"
+            out_dir = os.path.join(orig_dir, "done", os.sep)
             if not os.path.exists(out_dir):
                 os.makedirs(out_dir)
             shutil.move(file_, out_dir)
+
     return note
 
 
-def main(directory, csvfile, task):
+def main(directory, csv_file, task_name):
     """
+    This does so much. It needs to be documented and thoroughly commented.
     """
-    csv_data = pd.read_csv(csvfile)
+    csv_data = pd.read_csv(csv_file)
     colnames = csv_data.columns.tolist()
 
     edat_files = glob.glob(directory + "*.edat*")
@@ -219,18 +241,18 @@ def main(directory, csvfile, task):
                       one_edat_timepoints)
     all_file_sets = one_text + two_texts + three_files + pairs + one_edat
 
-    organized_dir = org_dir_dict.get(task)
+    organized_dir = org_dir_dict.get(task_name)
 
     for i_subj in range(len(all_subjects)):
-        month = timepoint_dict.get(task).get(all_timepoints[i_subj])
+        month = timepoint_dict.get(task_name).get(all_timepoints[i_subj])
         files_note = note_dict.get(all_notetype[i_subj])
         if len(all_subjects) > 4:
             try:
                 print("Successfully organized %s-%s" % (all_subjects[i_subj], month))
                 print("Moved:")
-                subjectId = all_subjects[i_subj]
+                subject_id = all_subjects[i_subj]
                 files = all_file_sets[i_subj]
-                note = organize_files(subjectId, month, files, organized_dir)
+                note = organize_files(subject_id, month, files, organized_dir)
                 note.append(files_note)
                 orged = 1
                 orgedwhen = time.strftime("%Y/%m/%d")
@@ -274,8 +296,13 @@ def main(directory, csvfile, task):
                                conved, convedwhen, convedby, note)
 
     csv_data = csv_data[colnames]
-    csv_data.to_csv(csvfile, index=False)
+    csv_data.to_csv(csv_file, index=False)
 
 
 if __name__ == "__main__":
+    """
+    If you call this function from the shell, the arguments are assumed
+    to be the raw data directory, the organization csv file, and the
+    task_name, in that order.
+    """
     main(sys.argv[1], sys.argv[2], sys.argv[3])

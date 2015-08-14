@@ -12,4 +12,4 @@ edat_file = op + "EP2_AXCPT_Run1_epc198-3.edat2"
 out_file = op + "epc198.csv"
 task = "EP2_AX"
 
-ce.text_to_csv(text_file, edat_file, out_file, task)
+ce.text_to_csv(text_file, out_file)

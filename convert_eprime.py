@@ -30,7 +30,7 @@ import sys
 
 # Read global variables from pickle file.
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-with open(code_dir + "/headers.pickle") as file_:
+with open(os.path.join(code_dir, "headers.pickle")) as file_:
     [headers, remnulls, replace_dict, fill_block, merge_cols, merge_col_names,
      null_cols] = pickle.load(file_)
 
@@ -108,13 +108,14 @@ def text_to_csv(text_file, out_file):
     end_index = [i_row for i_row, row in enumerate(filtered_data)
                  if row == "*** LogFrame End ***"]
     if (len(start_index) != len(end_index) or start_index[0] >= end_index[0]):
-        raise ValueError("LogFrame Starts and Ends do not match up.")
+        print("Warning: LogFrame Starts and Ends do not match up.")
+    n_rows = min(len(start_index), len(end_index))
     
     # Find column headers and remove duplicates.
     all_headers = []
     data_by_rows = []
     
-    for i_row in range(len(start_index)):
+    for i_row in range(n_rows):
         one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
         data_by_rows.append(one_row)
         for j_col in range(len(one_row)):
@@ -124,7 +125,7 @@ def text_to_csv(text_file, out_file):
     unique_headers = list(set(all_headers))
     
     # Preallocate list of lists composed of NULLs.
-    null_col = ["NULL"] * (len(start_index)+1)
+    null_col = ["NULL"] * (n_rows+1)
     data_matrix = [null_col[:] for i_col in range(len(unique_headers))]
     
     # Fill list of lists with relevant data from data_by_rows and
@@ -132,7 +133,7 @@ def text_to_csv(text_file, out_file):
     for i_col in range(len(unique_headers)):
         data_matrix[i_col][0] = unique_headers[i_col]
     
-    for i_row in range(len(start_index)):
+    for i_row in range(n_rows):
         for j_col in range(len(data_by_rows[i_row])):
             split_header_idx = data_by_rows[i_row][j_col].index(": ")
             for k_header in range(len(unique_headers)):
@@ -168,7 +169,7 @@ def text_to_csv(text_file, out_file):
     finally:
         fo.close()
     
-    print("Saved " + out_file)
+    print("Saved {0}".format(out_file))
 
 
 def text_to_rcsv(text_file, edat_file, out_file, task):
@@ -194,13 +195,14 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
     end_index = [i_row for i_row, row in enumerate(filtered_data)
                  if row == "*** LogFrame End ***"]
     if (len(start_index) != len(end_index) or start_index[0] >= end_index[0]):
-        raise ValueError("LogFrame Starts and Ends do not match up.")
+        print("Warning: LogFrame Starts and Ends do not match up.")
+    n_rows = min(len(start_index), len(end_index))
 
     # Find column headers and remove duplicates.
     all_headers = []
     data_by_rows = []
 
-    for i_row in range(len(start_index)):
+    for i_row in range(n_rows):
         one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
         data_by_rows.append(one_row)
         for j_col in range(len(one_row)):
@@ -210,7 +212,7 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
     unique_headers = list(set(all_headers))
 
     # Preallocate list of lists composed of NULLs.
-    null_col = ["NULL"] * (len(start_index)+1)
+    null_col = ["NULL"] * (n_rows+1)
     data_matrix = [null_col[:] for i_col in range(len(unique_headers))]
 
     # Fill list of lists with relevant data from data_by_rows and
@@ -218,7 +220,7 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
     for i_col in range(len(unique_headers)):
         data_matrix[i_col][0] = unique_headers[i_col]
 
-    for i_row in range(len(start_index)):
+    for i_row in range(n_rows):
         for j_col in range(len(data_by_rows[i_row])):
             split_header_idx = data_by_rows[i_row][j_col].index(": ")
             for k_header in range(len(unique_headers)):
@@ -302,7 +304,7 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
     finally:
         fo.close()
 
-    print("Saved " + out_file)
+    print("Saved {0}".format(out_file))
 
 
 def _det_file_type(in_file):
@@ -382,12 +384,12 @@ if __name__ == "__main__":
                         if (inspect.isfunction(obj) and not name.startswith('_'))]
     
     if function_name not in module_functions:
-        raise IOError("Function {0} not in convert_eprime.".format(function_name))
+        raise IOError("Function " + function_name + " not in convert_eprime.")
     
     function = globals()[function_name]
     n_args = len(inspect.getargspec(function).args)
     
     if n_args != len(sys.argv) - 2:
-        raise IOError("Function {0} takes {1} arguments, not {2}.".format(function_name, n_args, len(sys.argv)-2))
+        raise IOError("Function {0} takes {1} args, not {2}.".format(function_name, n_args, len(sys.argv)-2))
 
     function(*sys.argv[2:])  
