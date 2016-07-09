@@ -56,5 +56,6 @@ docs/_build/
 # PyBuilder
 target/
 
-# Pickle files
+# convert-eprime specific files
 *.pickle
+pf.py

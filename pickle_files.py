@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Aug  1 12:40:07 2014
-Writes out pickle file with a number of dictionaries used by convert_eprime.py. All of your task-specific information goes here.
+Writes out pickle file with a number of dictionaries used by convert_eprime.py.
+All of your task-specific information goes here.
 @author: tsalo
 """
 
@@ -11,7 +12,8 @@ import os
 
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 
-# Specific columns to pull. Outputted rcsvs (reduced csv files) will only contain these columns.
+# Specific columns to pull. Outputted rcsvs (reduced csv files) will only
+# contain these columns.
 headers = {
     "EP_AX": ["Subject", "Group", "ExperimentName", "Session", "Age",
               "Handedness", "Sex", "Block", "Cue.RT", "Cue.ACC",
@@ -76,7 +78,8 @@ headers = {
                    "PicNeut1.OnsetTime", "PicSmok1.OnsetTime"],
     }
 
-# Whether or not to remove NULL rows (rows where there are empty cells that have been filled with NULL).
+# Whether or not to remove NULL rows (rows where there are empty cells that
+# have been filled with NULL).
 remnulls = {
     "EP_AX": True,
     "EP_Stroop": True,
@@ -165,6 +168,6 @@ replace_dict = {"FAST_RISE_IE": {".edat2": {"Trial": "BadTrial",
 # Could this just be headers with the word "Block"?
 fill_block = ["BlockList", "EndBlock"]
 
-with open(code_dir + "/headers.pickle", "w") as file_:
+with open(os.path.join(code_dir, "headers.pickle"), "w") as fo:
     pickle.dump([headers, remnulls, replace_dict, fill_block, merge_cols,
-                 merge_col_names, null_cols], file_)
+                 merge_col_names, null_cols], fo)
