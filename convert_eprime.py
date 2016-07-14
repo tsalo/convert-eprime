@@ -213,7 +213,7 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
     # THIS SECTION NEEDS CLEANUP!
     for i_col, col in enumerate(data_matrix):
         rows_w_vals = [j_cell for j_cell, cell in enumerate(col) if cell != "NULL"]
-        if len(rows_w_vals) == 2 and (rows_w_vals[1] == len(col) - 1 or rows_w_vals[1] == len(col)-2):
+        if len(rows_w_vals) == 2 and (rows_w_vals[1] == len(col) - 1 or rows_w_vals[1] == len(col)-2 or rows_w_vals[1] == 1):
             data_matrix[i_col][1:len(col)] = ([col[rows_w_vals[1]]] * (len(col)-1))
         elif any([header in col[0] for header in fill_block]):
             for null_row in range(1, len(rows_w_vals)):
