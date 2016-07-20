@@ -28,6 +28,7 @@ import csv
 import numpy.core.fromnumeric as fn
 import sys
 import pandas as pd
+import numpy as np
 
 # Read global variables from pickle file.
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
@@ -69,7 +70,12 @@ def text_to_csv(text_file, out_file):
     to csv. Output from text_to_csv can be used to deduce information necessary
     for text_to_rcsv (e.g. columns to merge, columns to rename, etc.)
     """
+    df = __text_to_csv(text_file)
+    df.to_csv(out_file, index=False)
+    print("Output file successfully created- {0}".format(out_file))
+
     
+def __text_to_csv(text_file):
     # Load the text file as a list.
     with open(text_file, "r") as fo:
         text_data = list(fo)
@@ -98,44 +104,20 @@ def text_to_csv(text_file, out_file):
     unique_headers = list(set(all_headers))
     
     # Preallocate list of lists composed of NULLs.
-    null_col = ["NULL"] * (n_rows+1)
-    data_matrix = [null_col[:] for i_col in range(len(unique_headers))]
+    data_matrix = np.empty((n_rows, len(unique_headers)), dtype=object)
+    data_matrix[:] = np.nan
     
     # Fill list of lists with relevant data from data_by_rows and
     # unique_headers.
-    for i_col in range(len(unique_headers)):
-        data_matrix[i_col][0] = unique_headers[i_col]
-    
     for i_row in range(n_rows):
         for j_col in range(len(data_by_rows[i_row])):
             split_header_idx = data_by_rows[i_row][j_col].index(":")
             for k_header in range(len(unique_headers)):
                 if (data_by_rows[i_row][j_col][:split_header_idx] == unique_headers[k_header]):
-                    data_matrix[k_header][i_row+1] = data_by_rows[i_row][j_col][split_header_idx+1:].lstrip()
+                    data_matrix[i_row, k_header] = data_by_rows[i_row][j_col][split_header_idx+1:].lstrip()
     
-    # If a column is all NULLs except for the header and one value at the
-    # bottom, fill the column up with that bottom value.
-    for i_col, col in enumerate(data_matrix):
-        rows_w_vals = [j_cell for j_cell, cell in enumerate(col) if cell != "NULL"]
-        # If the column is full of NULLs (except for the last row and the header), len(row_w_vals) = 2
-    
-        if len(rows_w_vals) == 2 and (rows_w_vals[1] == len(col)-1):
-            data_matrix[i_col][1:len(col)] = ([col[rows_w_vals[1]]] * (len(col)-1))
-        data_matrix[i_col] = col[:len(col)-2]
-    
-    # Transpose data_matrix.
-    out_matrix = _transpose(data_matrix)
-    
-    try:
-    
-        with open(out_file, "wb") as fo:
-            file_ = csv.writer(fo)
-            for row in out_matrix:
-                file_.writerow(row)
-        print("Output file successfully created- {0}".format(out_file))
-    except IOError:
-        print("Can't open output file- {0}".format(out_file))
-    
+    df = pd.DataFrame(columns=unique_headers, data=data_matrix)
+    return df
 
 
 def text_to_rcsv(text_file, edat_file, out_file, task):
