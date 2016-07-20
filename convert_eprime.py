@@ -27,6 +27,7 @@ import inspect
 import csv
 import numpy.core.fromnumeric as fn
 import sys
+import pandas as pd
 
 # Read global variables from pickle file.
 code_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
@@ -40,44 +41,26 @@ def etext_to_rcsv(in_file, task):
     Converts exported "E-Prime text" file to reduced csv.
     """
     header_list = headers.get(task)
-    delimiter_, rem_lines = _det_file_type(in_file)
-    try:
-        with open(in_file, "rb") as fo:
-            wholefile = list(csv.reader(fo, delimiter=delimiter_))
-        header_index = []
-    except IOError:
-        print("Can't open input file- {0}".format(in_file))
-
-    # Remove first three rows.
-    for i_row in range(rem_lines):
-        wholefile.pop(0)
-
-    # Create list of columns with relevant headers.
-    header_index = [_try_index(wholefile[0], hed) for hed in header_list if _try_index(wholefile[0], hed) is not None]
-
-    # Make empty (zeros) list of lists and fill with relevant data from
-    # wholefile.
-    out_arr = [[wholefile[i_row][col] for col in header_index] for i_row in range(fn.size(wholefile, 0))]
-
-    # Either remove all instances of NULL or convert all instances of NULL to
-    # NaN.
-    if remnulls.get(task):
-        null_index = [list(set([i_row for col in out_arr[i_row] if col == "NULL"])) for i_row in range(fn.size(out_arr, 0))]
-        null_index = sorted([val for sublist in null_index for val in sublist], reverse=True)
-        [out_arr.pop(i) for i in null_index]
+    
+    filename, suffix = os.path.splitext(in_file)
+    if suffix == ".txt":
+        rem_lines = range(3)
+        delimiter_ = "\t"
+    elif suffix == ".csv":
+        rem_lines = []
+        delimiter_ = ","
     else:
-        out_arr = [[word.replace("NULL", "NaN") for word in row] for row in out_arr]
-
-    # Write out and save csv file.
-    out_file = in_file[:len(in_file)-3] + "csv"
-    try:
-        with open(out_file, "wb") as fo:
-            file_ = csv.writer(fo)
-            for row in out_arr:
-                file_.writerow(row)
-        print("Output file successfully created- {0}".format(out_file))
-    except IOError:
-        print("Can't open output file- {0}".format(out_file))
+        raise Exception("File not txt or csv: {0}".format(in_file))
+    
+    df = pd.read_csv(in_file, skiprows=rem_lines, sep=delimiter_)
+    df = df[header_list]
+    if remnulls.get(task):
+        df = df.dropna(axis=0)
+    
+    out_file = filename + ".csv"
+    
+    df.to_csv(out_file, index=False)
+    print("Output file successfully created- {0}".format(out_file))
 
 
 def text_to_csv(text_file, out_file):
@@ -273,26 +256,6 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
         print("Output file successfully created- {0}".format(out_file))
     except IOError:
         print("Can't open output file- {0}".format(out_file))
-
-
-
-def _det_file_type(in_file):
-    """
-    Determines number of lines to remove and file delimiter from filetype.
-    """
-    [fn, sf] = os.path.splitext(in_file)
-    if sf == ".csv":
-        delimiter_ = ","
-        rem_lines = 0
-    elif sf == ".txt":
-        delimiter_ = "\t"
-        rem_lines = 3
-    elif len(in_file) == 0:
-        raise ValueError("Input file name is empty.")
-    else:
-        raise ValueError("Input file name is not .csv or .txt.")
-
-    return delimiter_, rem_lines
 
 
 def _merge_lists(lists, option):
