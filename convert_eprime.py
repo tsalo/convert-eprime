@@ -70,54 +70,9 @@ def text_to_csv(text_file, out_file):
     to csv. Output from text_to_csv can be used to deduce information necessary
     for text_to_rcsv (e.g. columns to merge, columns to rename, etc.)
     """
-    df = __text_to_csv(text_file)
+    df = _text_to_df(text_file)
     df.to_csv(out_file, index=False)
     print("Output file successfully created- {0}".format(out_file))
-
-    
-def __text_to_csv(text_file):
-    # Load the text file as a list.
-    with open(text_file, "r") as fo:
-        text_data = list(fo)
-    
-    # Remove unicode characters.
-    filtered_data = [_strip(row) for row in text_data]
-    
-    # Determine where rows begin and end.
-    start_index = [i_row for i_row, row in enumerate(filtered_data) if row == "*** LogFrame Start ***"]
-    end_index = [i_row for i_row, row in enumerate(filtered_data) if row == "*** LogFrame End ***"]
-    if (len(start_index) != len(end_index) or start_index[0] >= end_index[0]):
-        print("Warning: LogFrame Starts and Ends do not match up.")
-    n_rows = min(len(start_index), len(end_index))
-    
-    # Find column headers and remove duplicates.
-    all_headers = []
-    data_by_rows = []
-    
-    for i_row in range(n_rows):
-        one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
-        data_by_rows.append(one_row)
-        for j_col in range(len(one_row)):
-            split_header_idx = one_row[j_col].index(":")
-            all_headers.append(one_row[j_col][:split_header_idx])
-    
-    unique_headers = list(set(all_headers))
-    
-    # Preallocate list of lists composed of NULLs.
-    data_matrix = np.empty((n_rows, len(unique_headers)), dtype=object)
-    data_matrix[:] = np.nan
-    
-    # Fill list of lists with relevant data from data_by_rows and
-    # unique_headers.
-    for i_row in range(n_rows):
-        for j_col in range(len(data_by_rows[i_row])):
-            split_header_idx = data_by_rows[i_row][j_col].index(":")
-            for k_header in range(len(unique_headers)):
-                if (data_by_rows[i_row][j_col][:split_header_idx] == unique_headers[k_header]):
-                    data_matrix[i_row, k_header] = data_by_rows[i_row][j_col][split_header_idx+1:].lstrip()
-    
-    df = pd.DataFrame(columns=unique_headers, data=data_matrix)
-    return df
 
 
 def text_to_rcsv(text_file, edat_file, out_file, task):
@@ -266,6 +221,51 @@ def _strip(string):
     Removes unicode characters in string.
     """
     return "".join([val for val in string if 31 < ord(val) < 127])
+
+
+def _text_to_df(text_file):
+    # Load the text file as a list.
+    with open(text_file, "r") as fo:
+        text_data = list(fo)
+    
+    # Remove unicode characters.
+    filtered_data = [_strip(row) for row in text_data]
+    
+    # Determine where rows begin and end.
+    start_index = [i_row for i_row, row in enumerate(filtered_data) if row == "*** LogFrame Start ***"]
+    end_index = [i_row for i_row, row in enumerate(filtered_data) if row == "*** LogFrame End ***"]
+    if (len(start_index) != len(end_index) or start_index[0] >= end_index[0]):
+        print("Warning: LogFrame Starts and Ends do not match up.")
+    n_rows = min(len(start_index), len(end_index))
+    
+    # Find column headers and remove duplicates.
+    all_headers = []
+    data_by_rows = []
+    
+    for i_row in range(n_rows):
+        one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
+        data_by_rows.append(one_row)
+        for j_col in range(len(one_row)):
+            split_header_idx = one_row[j_col].index(":")
+            all_headers.append(one_row[j_col][:split_header_idx])
+    
+    unique_headers = list(set(all_headers))
+    
+    # Preallocate list of lists composed of NULLs.
+    data_matrix = np.empty((n_rows, len(unique_headers)), dtype=object)
+    data_matrix[:] = np.nan
+    
+    # Fill list of lists with relevant data from data_by_rows and
+    # unique_headers.
+    for i_row in range(n_rows):
+        for j_col in range(len(data_by_rows[i_row])):
+            split_header_idx = data_by_rows[i_row][j_col].index(":")
+            for k_header in range(len(unique_headers)):
+                if (data_by_rows[i_row][j_col][:split_header_idx] == unique_headers[k_header]):
+                    data_matrix[i_row, k_header] = data_by_rows[i_row][j_col][split_header_idx+1:].lstrip()
+    
+    df = pd.DataFrame(columns=unique_headers, data=data_matrix)
+    return df
 
 
 def _transpose(list_):
