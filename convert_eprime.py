@@ -39,7 +39,25 @@ with open(os.path.join(code_dir, "headers.pickle")) as file_:
 
 def etext_to_rcsv(in_file, task):
     """
-    Converts exported "E-Prime text" file to reduced csv.
+    Reads exported "E-Prime text" file, reduces columns based on tasks-specific
+    list of headers, and writes out reduced csv.
+    
+    Parameters
+    ----------
+    in_file : str
+        Exported E-Prime text file to convert and reduce.
+    
+    task : str
+        Task name, used with dictionary from headers.pickle file to determine
+        columns to keep.
+    
+    Examples
+    ----------
+    >>> file_ = "subj0001_stop_signal_task-0.txt"
+    >>> task = "TEST_STOPSIGNAL"
+    >>> ce.etext_to_rcsv(file_, task)
+    Output file successfully created- subj0001_stop_signal_task-0.csv
+    
     """
     header_list = headers.get(task)
     
