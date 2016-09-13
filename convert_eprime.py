@@ -85,8 +85,25 @@ def etext_to_rcsv(in_file, task):
 def text_to_csv(text_file, out_file):
     """
     Converts text file produced by successful completion of E-Prime experiment
-    to csv. Output from text_to_csv can be used to deduce information necessary
-    for text_to_rcsv (e.g. columns to merge, columns to rename, etc.)
+    to csv. Output from text_to_csv can be used to determine information
+    necessary for text_to_rcsv (e.g. columns to merge, columns to rename,
+    etc.).
+    
+    Parameters
+    ----------
+    text_file : str
+        Raw E-Prime text file to convert.
+    
+    out_file : str
+        Name of output file (csv format) to generate.
+    
+    Examples
+    ----------
+    >>> in_file = "subj0001_stop_signal_task-0.txt"
+    >>> out_file = "subj0001_0.csv"
+    >>> ce.text_to_csv(in_file, out_file)
+    Output file successfully created- subj0001_0.csv
+    
     """
     df = _text_to_df(text_file)
     df.to_csv(out_file, index=False)
@@ -97,6 +114,33 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
     """
     Converts text file produced by successful completion of E-Prime experiment
     to reduced csv. Considerably more complex than text_to_csv.
+    
+    Parameters
+    ----------
+    text_file : str
+        Raw E-Prime text file to convert.
+    
+    edat_file : str
+        Raw E-Prime edat file paired with text_file. Only used for its file
+        type, because sometimes files will differ between version of E-Prime
+        (edat vs. edat2 suffix).
+    
+    out_file : str
+        Name of output file (csv format) to generate.
+    
+    task : str
+        Task name, used with dictionary from headers.pickle file to determine
+        columns to keep.
+    
+    Examples
+    ----------
+    >>> in_file = "subj0001_stop_signal_task-0.txt"
+    >>> edat_file = "subj0001_stop_signal_task-0.edat2"
+    >>> out_file = "subj0001_0.csv"
+    >>> task = "TEST_STOPSIGNAL"
+    >>> ce.text_to_rcsv(in_file, edat_file, out_file, task)
+    Output file successfully created- subj0001_0.csv
+    
     """
 
     [_, edat_suffix] = os.path.splitext(edat_file)
