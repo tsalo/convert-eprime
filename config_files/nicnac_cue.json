@@ -1,0 +1,17 @@
+{
+    "headers": [
+      "Crave.CRESP",
+      "Crave.RESP",
+      "Crave.RT",
+      "Crave.RTTime",
+      "FixDur",
+      "Procedure[Block]",
+      "Duration",
+      "PicNeut1.OnsetTime",
+      "PicSmok1.OnsetTime"
+    ],
+    "merge_cols": {},
+    "null_cols": [],
+    "rem_nulls": false,
+    "replace_dict": {}
+}
