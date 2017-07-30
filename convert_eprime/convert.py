@@ -25,22 +25,16 @@ command line usage: python convert_eprime.py [function_name] [inputs]
 from __future__ import print_function
 import os
 import sys
-import csv
-import pickle
+import json
 import inspect
 
 import pandas as pd
 import numpy as np
-import numpy.core.fromnumeric as fn
 
-# Read global variables from pickle file.
-CODE_DIR = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-with open(os.path.join(CODE_DIR, 'headers.pickle')) as fo:
-    [headers, remnulls, replace_dict, fill_block, merge_cols, merge_col_names,
-     null_cols] = pickle.load(fo)
+from .utils import remove_unicode
 
 
-def etext_to_rcsv(in_file, task):
+def etext_to_rcsv(in_file, param_file, out_file=None):
     """
     Reads exported 'E-Prime text' file, reduces columns based on tasks-specific
     list of headers, and writes out reduced csv.
@@ -50,36 +44,48 @@ def etext_to_rcsv(in_file, task):
     in_file : str
         Exported E-Prime text file to convert and reduce.
 
-    task : str
-        Task name, used with dictionary from headers.pickle file to determine
-        columns to keep.
+    param_file : str
+        A json file with relevant task-specific parameters.
+
+    out_file : str
+        Name of output file (csv format) to generate. If not set, then a file
+        will be written out with the same name as the input file, but with a csv
+        suffix instead of txt.
 
     Examples
     ----------
-    >>> file_ = 'subj0001_stop_signal_task-0.txt'
-    >>> task = 'TEST_STOPSIGNAL'
-    >>> ce.etext_to_rcsv(file_, task)
-    Output file successfully created- subj0001_stop_signal_task-0.csv
+    >>> from convert_eprime.convert import etext_to_rcsv
+    >>> etext_file = 'subj0001_stop_signal_task-0.txt'
+    >>> param_file = '../config_files/nac_stopsignal.json'
+    >>> etext_to_rcsv(etext_file, param_file)  # doctest: +ALLOW_UNICODE
+    'Output file successfully created- subj0001_stop_signal_task-0.csv'
 
     """
-    header_list = headers.get(task)
+    with open(param_file, 'r') as file_object:
+        param_dict = json.load(file_object)
 
     filename, suffix = os.path.splitext(in_file)
     if suffix == '.txt':
+        # Remove first three lines of exported E-Prime tab-delimited text file.
         rem_lines = range(3)
         delimiter_ = '\t'
     elif suffix == '.csv':
+        # Remove no lines of comma-delimited csv file.
         rem_lines = []
         delimiter_ = ','
     else:
         raise Exception('File not txt or csv: {0}'.format(in_file))
 
     df = pd.read_csv(in_file, skiprows=rem_lines, sep=delimiter_)
+
+    header_list = param_dict.get('headers')
     df = df[header_list]
-    if remnulls.get(task):
+
+    if param_dict['rem_nulls']:
         df = df.dropna(axis=0)
 
-    out_file = filename + '.csv'
+    if out_file is None:
+        out_file = filename + '.csv'
 
     df.to_csv(out_file, index=False)
     print('Output file successfully created- {0}'.format(out_file))
@@ -102,18 +108,20 @@ def text_to_csv(text_file, out_file):
 
     Examples
     ----------
+    >>> from convert_eprime.convert import text_to_csv
     >>> in_file = 'subj0001_stop_signal_task-0.txt'
     >>> out_file = 'subj0001_0.csv'
-    >>> ce.text_to_csv(in_file, out_file)
-    Output file successfully created- subj0001_0.csv
+    >>> text_to_csv(in_file, out_file)  # doctest: +ALLOW_UNICODE
+    'Output file successfully created- subj0001_0.csv'
 
     """
     df = _text_to_df(text_file)
+
     df.to_csv(out_file, index=False)
     print('Output file successfully created- {0}'.format(out_file))
 
 
-def text_to_rcsv(text_file, edat_file, out_file, task):
+def text_to_rcsv(text_file, edat_file, param_file, out_file):
     """
     Converts text file produced by successful completion of E-Prime experiment
     to reduced csv. Considerably more complex than text_to_csv.
@@ -128,234 +136,94 @@ def text_to_rcsv(text_file, edat_file, out_file, task):
         type, because sometimes files will differ between version of E-Prime
         (edat vs. edat2 suffix).
 
+    param_file : str
+        A json file with relevant task-specific parameters.
+
     out_file : str
         Name of output file (csv format) to generate.
 
-    task : str
-        Task name, used with dictionary from headers.pickle file to determine
-        columns to keep.
-
     Examples
     ----------
+    >>> from convert_eprime.convert import text_to_rcsv
     >>> in_file = 'subj0001_stop_signal_task-0.txt'
     >>> edat_file = 'subj0001_stop_signal_task-0.edat2'
     >>> out_file = 'subj0001_0.csv'
-    >>> task = 'TEST_STOPSIGNAL'
-    >>> ce.text_to_rcsv(in_file, edat_file, out_file, task)
-    Output file successfully created- subj0001_0.csv
+    >>> param_file = '../config_files/nac_stopsignal.json'
+    >>> text_to_rcsv(in_file, edat_file, out_file, param_file)  # doctest: +ALLOW_UNICODE
+    'Output file successfully created- subj0001_0.csv'
 
     """
+    with open(param_file, 'r') as file_object:
+        param_dict = json.load(file_object)
+
     df = _text_to_df(text_file)
 
-    [_, edat_suffix] = os.path.splitext(edat_file)
-    header_list = headers.get(task)
-    replacements = replace_dict.get(task).get(edat_suffix)
-
     # Rename columns
+    _, edat_suffix = os.path.splitext(edat_file)
+    replacements = param_dict.get('replacements').get(edat_suffix)
+    df = df.rename(columns=replacements)
 
     # Merge columns
+    merge_cols = param_dict.get('merge_cols')
+    for col in merge_cols.keys():
+        df[col] = df[merge_cols[col]].fillna('').sum(axis=1)
 
-    # Load the text file as a list.
-    with open(text_file, 'r') as fo:
-        text_data = list(fo)
+    # Drop NaNs based on specific columns
+    df = df.dropna(subset=param_dict.get('null_cols'))
 
-    # Remove unicode characters.
-    filtered_data = [_strip(row) for row in text_data]
+    # Reduce DataFrame to desired columns
+    header_list = param_dict.get('headers')
+    df = df[header_list]
 
-    # Determine where rows begin and end.
-    start_index = [i_row for i_row, row in enumerate(filtered_data) if row == '*** LogFrame Start ***']
-    end_index = [i_row for i_row, row in enumerate(filtered_data) if row == '*** LogFrame End ***']
-    if (len(start_index) != len(end_index) or start_index[0] >= end_index[0]):
-        print('Warning: LogFrame Starts and Ends do not match up.')
-    n_rows = min(len(start_index), len(end_index))
-
-    # Find column headers and remove duplicates.
-    all_headers = []
-    data_by_rows = []
-
-    for i_row in range(n_rows):
-        one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
-        data_by_rows.append(one_row)
-        for j_col in range(len(one_row)):
-            split_header_idx = one_row[j_col].index(':')
-            all_headers.append(one_row[j_col][:split_header_idx])
-
-    unique_headers = list(set(all_headers))
-
-    # Preallocate list of lists composed of NULLs.
-    null_col = ['NULL'] * (n_rows+1)
-    data_matrix = [null_col[:] for i_col in range(len(unique_headers))]
-
-    # Fill list of lists with relevant data from data_by_rows and
-    # unique_headers.
-    for i_col in range(len(unique_headers)):
-        data_matrix[i_col][0] = unique_headers[i_col]
-
-    for i_row in range(n_rows):
-        for j_col in range(len(data_by_rows[i_row])):
-            split_header_idx = data_by_rows[i_row][j_col].index(':')
-            for k_header in range(len(unique_headers)):
-                if (data_by_rows[i_row][j_col][:split_header_idx] == unique_headers[k_header]):
-                    data_matrix[k_header][i_row+1] = data_by_rows[i_row][j_col][split_header_idx+1:].lstrip()
-
-    # If a column is all NULLs except for the header and one value at the
-    # bottom, fill the column up with that bottom value.
-    # THIS SECTION NEEDS CLEANUP!
-    for i_col, col in enumerate(data_matrix):
-        rows_w_vals = [j_cell for j_cell, cell in enumerate(col) if cell != 'NULL']
-        if len(rows_w_vals) == 2 and (rows_w_vals[1] == len(col) - 1 or \
-                                      rows_w_vals[1] == len(col)-2 or rows_w_vals[1] == 1):
-            data_matrix[i_col][1:len(col)] = ([col[rows_w_vals[1]]] * (len(col)-1))
-        elif any([header in col[0] for header in fill_block]):
-            for null_row in range(1, len(rows_w_vals)):
-                first = rows_w_vals[null_row-1] + 1
-                last = rows_w_vals[null_row]
-                n_rows_to_fill = len(range(rows_w_vals[null_row-1] + 1, rows_w_vals[null_row]))
-                data_matrix[i_col][first:last] = (col[rows_w_vals[null_row]] * n_rows_to_fill)
-
-        data_matrix[i_col] = col[:len(col)-2]
-
-    # Transpose data_matrix.
-    t_data_matrix = _transpose(data_matrix)
-
-    # Replace text headers with edat headers (replacement dict). Unnecessary if
-    # your processing scripts are built around text files instead of edat
-    # files.
-    t_data_matrix[0] = [replacements.get(item, item) for item in t_data_matrix[0]]
-
-    # Pare data_matrix down based on desired headers
-    # Create list of columns with relevant headers.
-    header_index = [t_data_matrix[0].index(header) for header in header_list]
-
-    # Merge any columns that need to be merged.
-    columns_to_merge = merge_cols.get(task)
-    merge_col_names_list = merge_col_names.get(task)
-    merged_data = []
-    for i_merge in range(len(merge_col_names_list)):
-        merge_col_nums = [t_data_matrix[0].index(hed) for hed in columns_to_merge[i_merge]]
-        data_to_merge = [data_matrix[col] for col in merge_col_nums]
-        merged_data.append(_merge_lists(data_to_merge, 'all_else'))
-        merged_data[i_merge][0] = merge_col_names_list[i_merge]
-
-    out_matrix = [[t_data_matrix[i_row][col] for col in header_index] for i_row in range(fn.size(t_data_matrix, 0))]
-
-    # Transpose merged_data and append them to out_matrix.
-    if len(merged_data) != 0:
-        t_merged_data = _transpose(merged_data)
-        for i_row in range(len(out_matrix)):
-            out_matrix[i_row] = out_matrix[i_row] + t_merged_data[i_row]
-
-    # Create column from which null index will be created.
-    # Remove all instances of NULL by creating an index of NULL occurrences
-    # and removing them from out_matrix.
-    null_column_names = null_cols.get(task)
-    null_column_index = [header_index[header_list.index(column)] for column in null_column_names]
-    nulls_to_merge = [data_matrix[col_num] for col_num in null_column_index]
-    merged_nulls_list = _merge_lists(nulls_to_merge, 'all_null')
-    null_index = sorted([i_row for i_row in range(len(merged_nulls_list)) if merged_nulls_list[i_row] == 'NULL'], reverse=True)
-    [out_matrix.pop(null_row) for null_row in null_index]
-
-    try:
-        with open(out_file, 'wb') as fo:
-            file_ = csv.writer(fo)
-            for row in out_matrix:
-                file_.writerow(row)
-
-        print('Output file successfully created- {0}'.format(out_file))
-    except IOError:
-        print('Can\'t open output file- {0}'.format(out_file))
-
-
-def _merge_lists(lists, option):
-    """
-    Merges multiple lists into one list, with the default being the values of
-    the first list. It either replaces values with NULL if NULL is in that
-    position in another list or replaces NULL with values if values are in that
-    position in another list.
-    """
-    if not isinstance(lists[0], list):
-        return lists
-    else:
-        merged = lists[0]
-        for col_data in lists:
-            if option == 'all_null':
-                merged = [col_data[i_row] if col_data[i_row] == 'NULL'
-                          else merged[i_row] for i_row in range(len(merged))]
-            elif option == 'all_else':
-                merged = [col_data[i_row] if col_data[i_row] != 'NULL'
-                          else merged[i_row] for i_row in range(len(merged))]
-        return merged
-
-
-def _strip(string):
-    """
-    Removes unicode characters in string.
-    """
-    return ''.join([val for val in string if 31 < ord(val) < 127])
+    # Write out reduced csv
+    df.to_csv(out_file, index=False)
+    print('Output file successfully created- {0}'.format(out_file))
 
 
 def _text_to_df(text_file):
+    """
+    Convert a raw E-Prime output text file into a pandas DataFrame.
+    """
     # Load the text file as a list.
     with open(text_file, 'r') as fo:
         text_data = list(fo)
 
     # Remove unicode characters.
-    filtered_data = [_strip(row) for row in text_data]
+    filtered_data = [remove_unicode(row) for row in text_data]
 
     # Determine where rows begin and end.
     start_index = [i for i, row in enumerate(filtered_data) if row == '*** LogFrame Start ***']
-    end_index = [i_row for i_row, row in enumerate(filtered_data) if row == '*** LogFrame End ***']
+    end_index = [i for i, row in enumerate(filtered_data) if row == '*** LogFrame End ***']
     if len(start_index) != len(end_index) or start_index[0] >= end_index[0]:
         print('Warning: LogFrame Starts and Ends do not match up.')
     n_rows = min(len(start_index), len(end_index))
 
     # Find column headers and remove duplicates.
-    all_headers = []
+    headers = []
     data_by_rows = []
-
-    for i_row in range(n_rows):
-        one_row = filtered_data[start_index[i_row]+1:end_index[i_row]]
+    for i in range(n_rows):
+        one_row = filtered_data[start_index[i]+1:end_index[i]]
         data_by_rows.append(one_row)
         for col_val in one_row:
             split_header_idx = col_val.index(':')
-            all_headers.append(col_val[:split_header_idx])
+            headers.append(col_val[:split_header_idx])
 
-    unique_headers = list(set(all_headers))
+    headers = list(set(headers))
 
     # Preallocate list of lists composed of NULLs.
-    data_matrix = np.empty((n_rows, len(unique_headers)), dtype=object)
+    data_matrix = np.empty((n_rows, len(headers)), dtype=object)
     data_matrix[:] = np.nan
 
-    # Fill list of lists with relevant data from data_by_rows and
-    # unique_headers.
-    for i_row in range(n_rows):
-        for cell_data in data_by_rows[i_row]:
+    # Fill list of lists with relevant data from data_by_rows and headers.
+    for i in range(n_rows):
+        for cell_data in data_by_rows[i]:
             split_header_idx = cell_data.index(':')
-            for k_header, header in enumerate(unique_headers):
+            for k_header, header in enumerate(headers):
                 if cell_data[:split_header_idx] == header:
-                    data_matrix[i_row, k_header] = cell_data[split_header_idx+1:].lstrip()
+                    data_matrix[i, k_header] = cell_data[split_header_idx+1:].lstrip()
 
-    df = pd.DataFrame(columns=unique_headers, data=data_matrix)
+    df = pd.DataFrame(columns=headers, data=data_matrix)
     return df
-
-
-def _transpose(list_):
-    """
-    Transposes a list of lists.
-    """
-    transposed_ = [[row[col] for row in list_] for col in range(len(list_[0]))]
-    transposed = [col for col in transposed_ if col]
-    return transposed
-
-
-def _try_index(list_, val):
-    """
-    Indexes a list without throwing an error if the value isn't found.
-    """
-    try:
-        return list_.index(val)
-    except:
-        print(val)
 
 
 if __name__ == '__main__':
@@ -365,7 +233,7 @@ if __name__ == '__main__':
     """
     function_name = sys.argv[1]
     MODULE_FUNCTIONS = [name for name, obj in inspect.getmembers(sys.modules[__name__])
-                        if (inspect.isfunction(obj) and not name.startswith('_'))]
+                        if inspect.isfunction(obj) and not name.startswith('_')]
 
     if function_name not in MODULE_FUNCTIONS:
         raise IOError('Function {0} not in convert_eprime.'.format(function_name))

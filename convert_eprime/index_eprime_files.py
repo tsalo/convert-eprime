@@ -8,6 +8,7 @@ text (two text files).
 Somewhat functional, but barely readable, as of 150209.
 @author: tsalo
 """
+from __future__ import print_function
 import os
 import re
 import sys
@@ -70,7 +71,7 @@ def get_subject(text_file):
     """
     Splits file name by hyphens to determine subject ID.
     """
-    path_name, sf = os.path.splitext(text_file)
+    path_name, _ = os.path.splitext(text_file)
     fname = os.path.basename(path_name)
     fname = fname.replace('-Left_Handed', '')
     all_hyphens = [m.start() for m in re.finditer('-', fname)]
@@ -90,7 +91,7 @@ def get_timepoint(text_file):
     """
     Splits file name by hyphens to determine timepoint.
     """
-    path_with_filename, sf = os.path.splitext(text_file)
+    path_with_filename, _ = os.path.splitext(text_file)
     fname = os.path.basename(path_with_filename)
     fname = fname.replace('-Left_Handed', '')
 
