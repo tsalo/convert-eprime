@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# emacs: -*- mode: python-mode; py-indent-offset: 4; tab-width: 4; indent-tabs-mode: nil -*-
+# ex: set sts=4 ts=4 sw=4 et:
 """
 Convert an example E-Prime text file to csv.
 """

@@ -6,7 +6,7 @@ except ImportError:
     from distutils.core import setup
 
 # fetch version from within gclda module
-with open('gclda/version.py') as f:
+with open('convert_eprime/version.py') as f:
     exec(f.read())
 
 # fetch requirements from file
@@ -14,15 +14,15 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 config = {
-    'description': 'Python gcLDA Implementation',
-    'author': 'Timothy Rubin',
-    'url': 'https://github.com/timothyrubin/python_gclda/',
-    'download_url': 'https://github.com/timothyrubin/python_gclda/',
-    'author_email': 'tim.rubin@gmail.com',
+    'description': 'Python tools for converting E-Prime files',
+    'author': 'Taylor Salo',
+    'url': 'https://github.com/tsalo/convert-eprime/',
+    'download_url': 'https://github.com/tsalo/convert-eprime/',
+    'author_email': 'tsalo006@fiu.edu',
     'version': __version__,
     'install_requires': requirements,
-    'packages': ['gclda'],
-    'name': 'gclda'
+    'packages': ['convert_eprime'],
+    'name': 'convert_eprime'
 }
 
 setup(**config)
