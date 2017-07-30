@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# emacs: -*- mode: python-mode; py-indent-offset: 4; tab-width: 4; indent-tabs-mode: nil -*-
+# ex: set sts=4 ts=4 sw=4 et:
 """
 Created on Thu May 22 14:09:37 2014
 Designed to check for the existence of paired edat/text files in a folder.
@@ -8,44 +9,45 @@ Somewhat functional, but barely readable, as of 150209.
 @author: tsalo
 """
 import os
-import glob
 import re
-import pandas as pd
+import sys
 import time
 import shutil
-import sys
+from glob import glob
+
+import pandas as pd
 
 note_dict = {
-    "one_text": "One text file- must be recovered.",
-    "two_texts": "Two text files- must be merged.",
-    "three_files": "One edat and two text files- it's a thinker.",
-    "pair": "All good.",
-    "one_edat": "One edat- unknown problem.",
+    'one_text': 'One text file- must be recovered.',
+    'two_texts': 'Two text files- must be merged.',
+    'three_files': 'One edat and two text files- it\'s a thinker.',
+    'pair': 'All good.',
+    'one_edat': 'One edat- unknown problem.',
     }
 
 timepoint_dict = {
-    "EP2_AX": {
-        "1": "00_MONTH",
-        "2": "06_MONTH",
-        "3": "12_MONTH",
-        "4": "24_MONTH",
+    'EP2_AX': {
+        '1': '00_MONTH',
+        '2': '06_MONTH',
+        '3': '12_MONTH',
+        '4': '24_MONTH',
         },
-    "bEP2_AX": {
-        "1": "00_MONTH",
-        "2": "06_MONTH",
-        "3": "12_MONTH",
-        "4": "24_MONTH",
+    'bEP2_AX': {
+        '1': '00_MONTH',
+        '2': '06_MONTH',
+        '3': '12_MONTH',
+        '4': '24_MONTH',
         },
-    "EP2_ICET": {
-        "1": "00_MONTH",
-        "2": "12_MONTH",
-        "3": "24_MONTH",
+    'EP2_ICET': {
+        '1': '00_MONTH',
+        '2': '12_MONTH',
+        '3': '24_MONTH',
         }
     }
 
-org_dir_dict = {"EP2_AX": "Z:\\Behavioral_Data\\3.0T\\AX-CPT_EP2\\organized\\",
-                "bEP2_AX": "Z:\\Behavioral_Data\\BehavBehav\\AX-CPT_EP2\\organized\\",
-                "EP2_ICET": "Z:\\Behavioral_Data\\3.0T\\ICE-T_EP2\\organized\\",}
+org_dir_dict = {'EP2_AX': 'Z:\\Behavioral_Data\\3.0T\\AX-CPT_EP2\\organized\\',
+                'bEP2_AX': 'Z:\\Behavioral_Data\\BehavBehav\\AX-CPT_EP2\\organized\\',
+                'EP2_ICET': 'Z:\\Behavioral_Data\\3.0T\\ICE-T_EP2\\organized\\',}
 
 global note_dict, timepoint_dict, org_dir_dict
 
@@ -70,7 +72,7 @@ def get_subject(text_file):
     """
     path_name, sf = os.path.splitext(text_file)
     fname = os.path.basename(path_name)
-    fname = fname.replace("-Left_Handed", "")
+    fname = fname.replace('-Left_Handed', '')
     all_hyphens = [m.start() for m in re.finditer('-', fname)]
     if len(all_hyphens) == 1:
         beg = fname[:len(fname)-2].rindex('_')
@@ -90,7 +92,7 @@ def get_timepoint(text_file):
     """
     path_with_filename, sf = os.path.splitext(text_file)
     fname = os.path.basename(path_with_filename)
-    fname = fname.replace("-Left_Handed", "")
+    fname = fname.replace('-Left_Handed', '')
 
     # I forget what this does.
     all_underscores = [m.start() for m in re.finditer('_', fname)]
@@ -109,28 +111,28 @@ def organize_files(subject_id, timepoint, files, organized_dir):
     """
     If there are no problems, copies edat and text files with known subject ID
     and timepoint to organized directory and moves those files in the raw data dir
-    to a "done" subfolder.
-    
+    to a 'done' subfolder.
+
     If the file already exists in the destination directory, it does not copy or
     move the file and returns a note to that effect.
     """
-    note = ""
+    note = ''
     for file_ in files:
         orig_dir, file_name = os.path.split(file_)
-        
+
         # Create the destination dir if it doesn't already exist.
         org_dir = os.path.join(organized_dir, subject_id, timepoint)
         if not os.path.exists(org_dir):
             os.makedirs(org_dir)
 
         # If the file does not exist in the destination dir, copy it there and
-        # move the original to a "done" subdir.
+        # move the original to a 'done' subdir.
         # If it does, return a note saying that the file exists.
         if os.path.isfile(org_dir + file_name):
-            note += "File {0} already exists in {1}. ".format(file_name, org_dir)
+            note += 'File {0} already exists in {1}. '.format(file_name, org_dir)
         else:
             shutil.copy(file_, org_dir)
-            out_dir = os.path.join(orig_dir, "done", os.sep)
+            out_dir = os.path.join(orig_dir, 'done', os.sep)
             if not os.path.exists(out_dir):
                 os.makedirs(out_dir)
             shutil.move(file_, out_dir)
@@ -145,8 +147,8 @@ def main(directory, csv_file, task_name):
     csv_data = pd.read_csv(csv_file)
     colnames = csv_data.columns.tolist()
 
-    edat_files = glob.glob(directory + "*.edat*")
-    text_files = glob.glob(directory + "*-*.txt")
+    edat_files = glob(directory + '*.edat*')
+    text_files = glob(directory + '*-*.txt')
     all_files = edat_files + text_files
     pairs = []
     paired_texts = []
@@ -231,11 +233,11 @@ def main(directory, csv_file, task_name):
 
     all_subjects = (one_text_subjects + two_text_subjects + three_file_subjects +
                     pair_subjects + one_edat_subjects)
-    all_notetype = ((["one_text"] * len(one_text_subjects)) +
-                    (["two_texts"] * len(two_text_subjects)) +
-                    (["three_files"] * len(three_file_subjects)) +
-                    (["pair"] * len(pair_subjects)) +
-                    (["one_edat"] * len(one_edat_subjects)))
+    all_notetype = ((['one_text'] * len(one_text_subjects)) +
+                    (['two_texts'] * len(two_text_subjects)) +
+                    (['three_files'] * len(three_file_subjects)) +
+                    (['pair'] * len(pair_subjects)) +
+                    (['one_edat'] * len(one_edat_subjects)))
     all_timepoints = (one_text_timepoints + two_text_timepoints +
                       three_file_timepoints + pair_timepoints +
                       one_edat_timepoints)
@@ -248,48 +250,48 @@ def main(directory, csv_file, task_name):
         files_note = note_dict.get(all_notetype[i_subj])
         if len(all_subjects) > 4:
             try:
-                print("Successfully organized %s-%s" % (all_subjects[i_subj], month))
-                print("Moved:")
+                print('Successfully organized %s-%s' % (all_subjects[i_subj], month))
+                print('Moved:')
                 subject_id = all_subjects[i_subj]
                 files = all_file_sets[i_subj]
                 note = organize_files(subject_id, month, files, organized_dir)
                 note.append(files_note)
                 orged = 1
-                orgedwhen = time.strftime("%Y/%m/%d")
-                orgedby = "PY"
+                orgedwhen = time.strftime('%Y/%m/%d')
+                orgedby = 'PY'
             except IOError:
-                print("%s-%s couldn't be organized." % (all_subjects[i_subj], all_timepoints[i_subj]))
+                print('%s-%s couldn\'t be organized.' % (all_subjects[i_subj], all_timepoints[i_subj]))
                 note = files_note
                 orged = 0
-                orgedwhen = ""
-                orgedby = ""
+                orgedwhen = ''
+                orgedby = ''
 
             try:
-                if all_notetype[i_subj] == "pair":
-                    print("Successfully converted %s-%s" % (all_subjects[i_subj], all_timepoints[i_subj]))
+                if all_notetype[i_subj] == 'pair':
+                    print('Successfully converted %s-%s' % (all_subjects[i_subj], all_timepoints[i_subj]))
                     conved = 1
-                    convedwhen = time.strftime("%Y/%m/%d")
-                    convedby = "PY"
+                    convedwhen = time.strftime('%Y/%m/%d')
+                    convedby = 'PY'
                 else:
-                    print("%s-%s couldn't be converted." % (all_subjects[i_subj], all_timepoints[i_subj]))
+                    print('%s-%s couldn\'t be converted.' % (all_subjects[i_subj], all_timepoints[i_subj]))
                     conved = 0
-                    convedwhen = ""
-                    convedby = ""
+                    convedwhen = ''
+                    convedby = ''
             except IOError:
-                print("%s-%s couldn't be converted." % (all_subjects[i_subj], all_timepoints[i_subj]))
+                print('%s-%s couldn\'t be converted.' % (all_subjects[i_subj], all_timepoints[i_subj]))
                 conved = 0
-                convedwhen = ""
-                convedby = ""
+                convedwhen = ''
+                convedby = ''
         else:
-            print("%s-%s couldn't be organized." % (all_subjects[i_subj], all_timepoints[i_subj]))
+            print('%s-%s couldn\'t be organized.' % (all_subjects[i_subj], all_timepoints[i_subj]))
             note = files_note
             orged = 0
-            orgedwhen = ""
-            orgedby = ""
-            print("%s-%s couldn't be converted." % (all_subjects[i_subj], all_timepoints[i_subj]))
+            orgedwhen = ''
+            orgedby = ''
+            print('%s-%s couldn\'t be converted.' % (all_subjects[i_subj], all_timepoints[i_subj]))
             conved = 0
-            convedwhen = ""
-            convedby = ""
+            convedwhen = ''
+            convedby = ''
 
         csv_data = add_subject(csv_data, all_subjects[i_subj],
                                all_timepoints[i_subj], orged, orgedwhen, orgedby,
@@ -299,7 +301,7 @@ def main(directory, csv_file, task_name):
     csv_data.to_csv(csv_file, index=False)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     """
     If you call this function from the shell, the arguments are assumed
     to be the raw data directory, the organization csv file, and the

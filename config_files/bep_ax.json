@@ -1,0 +1,28 @@
+{
+    "headers": [
+        "Subject", 
+        "Group", 
+        "ExperimentName", 
+        "Session", 
+        "SessionDate", 
+        "Age", 
+        "Handedness", 
+        "Block", 
+        "Trial", 
+        "CueStim[Block]", 
+        "AllCue.ACC", 
+        "AllCue.OnsetTime", 
+        "AllCue.RT", 
+        "AllProbe", 
+        "AllProbe.ACC", 
+        "Cue.OnsetTime", 
+        "Probe.OnsetTime", 
+        "AllProbe.RT", 
+        "TrialType", 
+        "Running[Block]"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [], 
+    "rem_nulls": true, 
+    "replace_dict": {}
+}

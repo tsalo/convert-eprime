@@ -1,0 +1,32 @@
+{
+    "headers": [
+        "CNTRACSID", 
+        "SessionDate", 
+        "SessionTime", 
+        "Trial", 
+        "LeftStim", 
+        "RightStim", 
+        "StimuliACC", 
+        "StimuliCRESP", 
+        "StimuliOnsetTime", 
+        "StimuliRESP", 
+        "StimuliRT", 
+        "Stimulus"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [
+        "LeftStim"
+    ], 
+    "rem_nulls": true, 
+    "replace_dict": {
+        ".edat2": {
+            "EncodingList.Sample": "Trial", 
+            "Stimuli.ACC": "StimuliACC", 
+            "Stimuli.CRESP": "StimuliCRESP", 
+            "Stimuli.OnsetTime": "StimuliOnsetTime", 
+            "Stimuli.RESP": "StimuliRESP", 
+            "Stimuli.RT": "StimuliRT", 
+            "Trial": "BadTrial"
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "headers": [
+        "CNTRACSID", 
+        "EP2ID", 
+        "EPCID", 
+        "EPPID", 
+        "UHRID", 
+        "Subject", 
+        "Group", 
+        "ExperimentName", 
+        "Session", 
+        "Age", 
+        "Handedness", 
+        "Sex", 
+        "Test", 
+        "Cue.RT", 
+        "Cue.ACC", 
+        "Probe.RT", 
+        "Probe.ACC", 
+        "TrialType", 
+        "Cue.OnsetTime", 
+        "Probe.OnsetTime", 
+        "SessionDate"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [], 
+    "rem_nulls": true, 
+    "replace_dict": {}
+}

@@ -1,0 +1,37 @@
+{
+    "headers": [
+        "Subject", 
+        "Group", 
+        "Session", 
+        "Age", 
+        "ExperimentName", 
+        "Handedness", 
+        "Sex", 
+        "BlockNum", 
+        "Cue.RT", 
+        "Cue.ACC", 
+        "Probe.RT", 
+        "Probe.ACC", 
+        "TrialType", 
+        "Cue.OnsetTime", 
+        "Probe.OnsetTime", 
+        "CueStim[Block]", 
+        "SessionDate"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [
+        "Probe.ACC"
+    ], 
+    "rem_nulls": true, 
+    "replace_dict": {
+        ".edat": {
+            "BlockList.Cycle": "Block", 
+            "Experiment": "ExperimentName"
+        }, 
+        ".edat2": {
+            "CueStim": "CueStim[Block]", 
+            "Experiment": "ExperimentName", 
+            "ProbeStim": "ProbeStim[Block]"
+        }
+    }
+}

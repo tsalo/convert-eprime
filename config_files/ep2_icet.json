@@ -1,0 +1,29 @@
+{
+    "headers": [
+        "Subject", 
+        "Group", 
+        "BlockNum", 
+        "ExperimentName", 
+        "TrialNum", 
+        "Probe.ACC", 
+        "IsSame", 
+        "CueStim[Block]", 
+        "TrialType", 
+        "Cue.OnsetTime", 
+        "Probe.OnsetTime", 
+        "Probe.RT", 
+        "Feedback", 
+        "Feedback.OnsetTime", 
+        "SessionDate", 
+        "DeadlineNeu", 
+        "DeadlineRew", 
+        "DeadlinePun", 
+        "ISIshort", 
+        "Money", 
+        "Proce.ACC"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [], 
+    "rem_nulls": true, 
+    "replace_dict": {}
+}
