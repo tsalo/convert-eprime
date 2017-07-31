@@ -4,4 +4,4 @@
 """Specifies current version of convert_eprime to be used by setup.py and __init__.py
 """
 
-__version__ = '0.0.1a'
+__version__ = '0.0.1a0'

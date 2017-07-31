@@ -1,37 +1,44 @@
 {
     "headers": [
-        "Subject", 
-        "Group", 
-        "Session", 
-        "Age", 
-        "ExperimentName", 
-        "Handedness", 
-        "Sex", 
-        "BlockNum", 
-        "Cue.RT", 
-        "Cue.ACC", 
-        "Probe.RT", 
-        "Probe.ACC", 
-        "TrialType", 
-        "Cue.OnsetTime", 
-        "Probe.OnsetTime", 
-        "CueStim[Block]", 
+        "Subject",
+        "Group",
+        "Session",
+        "Age",
+        "ExperimentName",
+        "Handedness",
+        "Sex",
+        "BlockNum",
+        "Cue.RT",
+        "Cue.ACC",
+        "Probe.RT",
+        "Probe.ACC",
+        "TrialType",
+        "Cue.OnsetTime",
+        "Probe.OnsetTime",
+        "CueStim[Block]",
         "SessionDate"
-    ], 
-    "merge_cols": {}, 
+    ],
+    "merge_cols": {},
     "null_cols": [
         "Probe.ACC"
-    ], 
-    "rem_nulls": true, 
+    ],
+    "org_dir": "Z:\\Behavioral_Data\\3.0T\\AX-CPT_EP2\\organized\\",
+    "rem_nulls": true,
     "replace_dict": {
         ".edat": {
-            "BlockList.Cycle": "Block", 
+            "BlockList.Cycle": "Block",
             "Experiment": "ExperimentName"
-        }, 
+        },
         ".edat2": {
-            "CueStim": "CueStim[Block]", 
-            "Experiment": "ExperimentName", 
+            "CueStim": "CueStim[Block]",
+            "Experiment": "ExperimentName",
             "ProbeStim": "ProbeStim[Block]"
         }
+    },
+    "timepoints": {
+        "1": "00_MONTH",
+        "2": "06_MONTH",
+        "3": "12_MONTH",
+        "4": "24_MONTH"
     }
 }
