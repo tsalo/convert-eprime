@@ -160,8 +160,10 @@ def text_to_rcsv(text_file, edat_file, param_file, out_file):
 
     # Rename columns
     _, edat_suffix = os.path.splitext(edat_file)
-    replacements = param_dict.get('replacements').get(edat_suffix)
-    df = df.rename(columns=replacements)
+    replace_dict = param_dict.get('replace_dict')
+    if replace_dict:
+        replacements = replace_dict.get(edat_suffix)
+        df = df.rename(columns=replacements)
 
     # Merge columns
     merge_cols = param_dict.get('merge_cols')

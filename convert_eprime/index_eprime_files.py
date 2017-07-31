@@ -9,10 +9,11 @@ Somewhat functional, but barely readable, as of 150209.
 @author: tsalo
 """
 from __future__ import print_function
-import os
 import re
+import os
 import sys
 import time
+import json
 import shutil
 from glob import glob
 
@@ -26,34 +27,10 @@ note_dict = {
     'one_edat': 'One edat- unknown problem.',
     }
 
-timepoint_dict = {
-    'EP2_AX': {
-        '1': '00_MONTH',
-        '2': '06_MONTH',
-        '3': '12_MONTH',
-        '4': '24_MONTH',
-        },
-    'bEP2_AX': {
-        '1': '00_MONTH',
-        '2': '06_MONTH',
-        '3': '12_MONTH',
-        '4': '24_MONTH',
-        },
-    'EP2_ICET': {
-        '1': '00_MONTH',
-        '2': '12_MONTH',
-        '3': '24_MONTH',
-        }
-    }
-
-org_dir_dict = {'EP2_AX': 'Z:\\Behavioral_Data\\3.0T\\AX-CPT_EP2\\organized\\',
-                'bEP2_AX': 'Z:\\Behavioral_Data\\BehavBehav\\AX-CPT_EP2\\organized\\',
-                'EP2_ICET': 'Z:\\Behavioral_Data\\3.0T\\ICE-T_EP2\\organized\\',}
-
-global note_dict, timepoint_dict, org_dir_dict
+global note_dict
 
 
-def add_subject(csv_data, subj, timepoint, orged, orgedwhen, orgedby, conved,
+def add_subject(df, subj, timepoint, orged, orgedwhen, orgedby, conved,
                 convedwhen, convedby, notes):
     """
     Adds information about subject's data to spreadsheet.
@@ -63,8 +40,8 @@ def add_subject(csv_data, subj, timepoint, orged, orgedwhen, orgedby, conved,
                              Organized_by=orgedby, Converted=conved,
                              Date_Converted=convedwhen, Converted_by=convedby,
                              Notes=notes)])
-    csv_data = csv_data.append(row, ignore_index=False)
-    return csv_data
+    df = df.append(row, ignore_index=False)
+    return df
 
 
 def get_subject(text_file):
@@ -99,13 +76,13 @@ def get_timepoint(text_file):
     all_underscores = [m.start() for m in re.finditer('_', fname)]
     last_hyphen = fname.rindex('-')
     if not all_underscores:
-        tp = fname[-1]
+        timepoint = fname[-1]
     elif all_underscores[-1] < last_hyphen:
-        tp = fname[-1]
+        timepoint = fname[-1]
     else:
-        tp = fname[all_underscores[-1]]
+        timepoint = fname[all_underscores[-1]]
 
-    return tp
+    return timepoint
 
 
 def organize_files(subject_id, timepoint, files, organized_dir):
@@ -141,15 +118,19 @@ def organize_files(subject_id, timepoint, files, organized_dir):
     return note
 
 
-def main(directory, csv_file, task_name):
+def main(directory, csv_file, param_file):
     """
-    This does so much. It needs to be documented and thoroughly commented.
+    This does so much. It needs to be documented.
     """
-    csv_data = pd.read_csv(csv_file)
-    colnames = csv_data.columns.tolist()
+    # Read in data
+    df = pd.read_csv(csv_file)
+    with open(param_file, 'r') as file_object:
+        param_dict = json.load(file_object)
 
-    edat_files = glob(directory + '*.edat*')
-    text_files = glob(directory + '*-*.txt')
+    columns = df.columns.tolist()
+
+    edat_files = glob(os.path.join(directory, '*.edat*'))  # Grab edat and edat2 files
+    text_files = glob(os.path.join(directory, '*-*.txt'))  # Text files need - for timepoint
     all_files = edat_files + text_files
     pairs = []
     paired_texts = []
@@ -168,16 +149,16 @@ def main(directory, csv_file, task_name):
     three_files = []
     pop_idx = []
 
-    # List of lists
-    for i_file in range(len(unpaired_texts)):
-        for j_pair in range(len(paired_texts)):
-            if (unpaired_texts[i_file][:len(unpaired_texts[i_file])-6] in paired_texts[j_pair]):
-                three_files.append([paired_texts[j_pair], pairs[j_pair][1],
-                                    unpaired_texts[i_file]])
-                pop_idx.append(i_file)
+    # Find text files that correspond to a pair.
+    for i, up_text in enumerate(unpaired_texts):
+        for j, p_text in enumerate(paired_texts):
+            if up_text[:len(up_text)-6] in p_text:
+                three_files.append([p_text, pairs[j][1], up_text])
+                pop_idx.append(i)
 
-    for rm in reversed(pop_idx):
-        unpaired_texts.pop(rm)
+    # Remove files with buddies from list of unpaired files.
+    for rem_idx in reversed(pop_idx):
+        unpaired_texts.pop(rem_idx)
 
     # three_files is the text files and edats that form a triad (one edat, two
     # similarly named text files).
@@ -186,35 +167,36 @@ def main(directory, csv_file, task_name):
             if triad[0:2] == pairs[i_pair]:
                 pairs.pop(i_pair)
 
+    # Find pairs of similarly named text files.
     two_texts = []
     all_two_texts = []
     two_text_pairs = []
-
-    for i_file in range(len(unpaired_texts)):
-        for j_file in range(i_file + 1, len(unpaired_texts)):
-            if (unpaired_texts[i_file][:len(unpaired_texts[i_file])-6] in unpaired_texts[j_file]):
-                all_two_texts.append(i_file)
-                all_two_texts.append(j_file)
-                two_text_pairs.append([i_file, j_file])
+    for i, up_text1 in enumerate(unpaired_texts):
+        for j in range(i + 1, len(unpaired_texts)):
+            up_text2 = unpaired_texts[j]
+            if up_text1[:len(up_text1)-6] in up_text2:
+                all_two_texts.append(i)
+                all_two_texts.append(j)
+                two_text_pairs.append([i, j])
 
     all_two_texts = sorted(all_two_texts, reverse=True)
 
     # two_texts is the text files that pair with other text files.
-    for i_pair in range(len(two_text_pairs)):
-        two_texts.append([unpaired_texts[two_text_pairs[i_pair][0]],
-                         unpaired_texts[two_text_pairs[i_pair][1]]])
+    for tt_pair in two_text_pairs:
+        two_texts.append([unpaired_texts[tt_pair[0]], unpaired_texts[tt_pair[1]]])
 
     for i_file in all_two_texts:
         unpaired_texts.pop(i_file)
 
-    # one_text is the remaining un-paired text files.
-    one_text = [[unpaired_texts[i_file]] for i_file in range(len(unpaired_texts))]
+    # one_text is the remaining un-paired text files. Place these in a list of
+    # lists to match the format of the other file lists.
+    one_text = [[f] for f in unpaired_texts]
 
     # Determine subject IDs and timepoints for all files.
     # Assumes that files will be named according to convention
     # blahblahblah_[subj]-[tp].txt or blahblahblah-[subj]-[tp].txt.
-    one_text_subjects = [get_subject(file_[0]) for file_ in one_text]
-    one_text_timepoints = [get_timepoint(file_[0]) for file_ in one_text]
+    one_text_subjects = [get_subject(f[0]) for f in one_text]
+    one_text_timepoints = [get_timepoint(f[0]) for f in one_text]
     two_text_subjects = [get_subject(pair[0]) for pair in two_texts]
     two_text_timepoints = [get_timepoint(pair[0]) for pair in two_texts]
     three_file_subjects = [get_subject(triad[0]) for triad in three_files]
@@ -222,15 +204,19 @@ def main(directory, csv_file, task_name):
     pair_subjects = [get_subject(pair[0]) for pair in pairs]
     pair_timepoints = [get_timepoint(pair[0]) for pair in pairs]
 
+    # Place all accounted-for files in one list
     af_files = ([item for sublist in pairs for item in sublist] +
                 [item for sublist in two_texts for item in sublist] +
                 [item for sublist in three_files for item in sublist] +
                 [item for sublist in one_text for item in sublist])
 
+    # one_edat lists the edat files without an associated text file. I'm not
+    # sure what would cause this situation to occur, so they're catalogued with
+    # their own message.
     one_edat = list(set(all_files) - set(af_files))
     one_edat = [[edat] for edat in one_edat]
-    one_edat_subjects = [get_subject(file_[0]) for file_ in one_edat]
-    one_edat_timepoints = [get_timepoint(file_[0]) for file_ in one_edat]
+    one_edat_subjects = [get_subject(f[0]) for f in one_edat]
+    one_edat_timepoints = [get_timepoint(f[0]) for f in one_edat]
 
     all_subjects = (one_text_subjects + two_text_subjects + three_file_subjects +
                     pair_subjects + one_edat_subjects)
@@ -244,68 +230,75 @@ def main(directory, csv_file, task_name):
                       one_edat_timepoints)
     all_file_sets = one_text + two_texts + three_files + pairs + one_edat
 
-    organized_dir = org_dir_dict.get(task_name)
+    # Where organized files will be outputted
+    organized_dir = param_dict.get('org_dir')
 
     for i_subj in range(len(all_subjects)):
-        month = timepoint_dict.get(task_name).get(all_timepoints[i_subj])
+        month = param_dict.get('timepoints').get(all_timepoints[i_subj])
         files_note = note_dict.get(all_notetype[i_subj])
         if len(all_subjects) > 4:
             try:
-                print('Successfully organized %s-%s' % (all_subjects[i_subj], month))
+                print('Successfully organized {0}-{1}'.format(all_subjects[i_subj], month))
                 print('Moved:')
                 subject_id = all_subjects[i_subj]
                 files = all_file_sets[i_subj]
                 note = organize_files(subject_id, month, files, organized_dir)
                 note.append(files_note)
-                orged = 1
+                orged = True
                 orgedwhen = time.strftime('%Y/%m/%d')
                 orgedby = 'PY'
             except IOError:
-                print('%s-%s couldn\'t be organized.' % (all_subjects[i_subj], all_timepoints[i_subj]))
+                print('{0}-{1} couldn\'t be organized.'.format(all_subjects[i_subj],
+                                                               all_timepoints[i_subj]))
                 note = files_note
-                orged = 0
+                orged = False
                 orgedwhen = ''
                 orgedby = ''
 
             try:
                 if all_notetype[i_subj] == 'pair':
-                    print('Successfully converted %s-%s' % (all_subjects[i_subj], all_timepoints[i_subj]))
-                    conved = 1
+                    print('Successfully converted {0}-{1}'.format(all_subjects[i_subj],
+                                                                  all_timepoints[i_subj]))
+                    conved = True
                     convedwhen = time.strftime('%Y/%m/%d')
                     convedby = 'PY'
                 else:
-                    print('%s-%s couldn\'t be converted.' % (all_subjects[i_subj], all_timepoints[i_subj]))
-                    conved = 0
+                    print('{0}-{1} couldn\'t be converted.'.format(all_subjects[i_subj],
+                                                                   all_timepoints[i_subj]))
+                    conved = False
                     convedwhen = ''
                     convedby = ''
             except IOError:
-                print('%s-%s couldn\'t be converted.' % (all_subjects[i_subj], all_timepoints[i_subj]))
-                conved = 0
+                print('{0}-{1} couldn\'t be converted.'.format(all_subjects[i_subj],
+                                                               all_timepoints[i_subj]))
+                conved = False
                 convedwhen = ''
                 convedby = ''
         else:
-            print('%s-%s couldn\'t be organized.' % (all_subjects[i_subj], all_timepoints[i_subj]))
+            print('{0}-{1} couldn\'t be organized.'.format(all_subjects[i_subj],
+                                                           all_timepoints[i_subj]))
             note = files_note
-            orged = 0
+            orged = False
             orgedwhen = ''
             orgedby = ''
-            print('%s-%s couldn\'t be converted.' % (all_subjects[i_subj], all_timepoints[i_subj]))
-            conved = 0
+            print('{0}-{1} couldn\'t be converted.'.format(all_subjects[i_subj],
+                                                           all_timepoints[i_subj]))
+            conved = False
             convedwhen = ''
             convedby = ''
 
-        csv_data = add_subject(csv_data, all_subjects[i_subj],
-                               all_timepoints[i_subj], orged, orgedwhen, orgedby,
-                               conved, convedwhen, convedby, note)
+        df = add_subject(df, all_subjects[i_subj],
+                         all_timepoints[i_subj], orged, orgedwhen, orgedby,
+                         conved, convedwhen, convedby, note)
 
-    csv_data = csv_data[colnames]
-    csv_data.to_csv(csv_file, index=False)
+    df = df[columns]
+    df.to_csv(csv_file, index=False)
 
 
 if __name__ == '__main__':
     """
     If you call this function from the shell, the arguments are assumed
     to be the raw data directory, the organization csv file, and the
-    task_name, in that order.
+    task's param_file, in that order.
     """
     main(sys.argv[1], sys.argv[2], sys.argv[3])
