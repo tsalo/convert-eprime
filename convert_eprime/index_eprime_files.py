@@ -9,6 +9,7 @@ Somewhat functional, but barely readable, as of 150209.
 from __future__ import print_function
 import re
 import os
+from os.path import isfile
 import sys
 import time
 import json
@@ -130,16 +131,19 @@ def _get_timepoint(text_file):
     fname = os.path.basename(path_with_filename)
     fname = fname.replace('-Left_Handed', '')
 
-    # I forget what this does.
     all_underscores = [m.start() for m in re.finditer('_', fname)]
     last_hyphen = fname.rindex('-')
     if not all_underscores:
+        # If no underscores in filename.
         timepoint = fname[-1]
     elif all_underscores[-1] < last_hyphen:
+        # If last underscore is before the last hyphen, use characters after
+        # last hyphen as timepoint.
         timepoint = fname[-1]
     else:
-        timepoint = fname[all_underscores[-1]]
-
+        # If last underscore is after last hyphen, use characters between last
+        # hyphen and last underscore as timepoint.
+        timepoint = fname[last_hyphen+1:all_underscores[-1]]
     return timepoint
 
 
@@ -187,13 +191,13 @@ def _organize_files(subject_id, timepoint, files, organized_dir):
         # If the file does not exist in the destination dir, copy it there and
         # move the original to a 'done' subdir.
         # If it does, return a note saying that the file exists.
-        if os.path.isfile(org_dir + file_name):
+        if os.path.isfile(os.path.join(org_dir, file_name)):
             note += 'File {0} already exists in {1}. '.format(file_name, org_dir)
         else:
             shutil.copy(file_, org_dir)
-            out_dir = os.path.join(orig_dir, 'done', os.sep)
+            out_dir = os.path.join(orig_dir, 'done')
             if not os.path.exists(out_dir):
-                os.makedirs(out_dir)
+                os.mkdir(out_dir)
             shutil.move(file_, out_dir)
 
     return note
@@ -209,8 +213,9 @@ def main(directory, csv_file, param_file):
         The directory containing raw E-Prime output files to be organized and
         converted.
 
-    csv_file : str
-        A csv file where organizations and conversions are logged.
+    csv_file : str, optional
+        A csv file where organizations and conversions are logged. If the file
+        doesn't exist, a new one will be created.
 
     param_file : str
         A json file with task-specific settings (including orged_dir and
@@ -228,15 +233,20 @@ def main(directory, csv_file, param_file):
     # Read in data
     with open(param_file, 'r') as fid:
         param_dict = json.load(fid)
-    df = pd.read_csv(csv_file)
+
+    if isfile(csv_file):
+        df = pd.read_csv(csv_file)
+    else:
+        df = pd.DataFrame(columns=['Subject', 'Timepoint', 'Organized',
+                                   'Date_Organized', 'Organized_by', 'Converted',
+                                   'Date_Converted', 'Converted_by', 'Notes'])
     columns = df.columns.tolist()
 
     edat_files = glob(os.path.join(directory, '*.edat*'))  # Grab edat and edat2 files
     text_files = glob(os.path.join(directory, '*-*.txt'))  # Text files need - for timepoint
-    all_files = edat_files + text_files
-    pairs = []
-    paired_texts = []
+    all_files = sorted(edat_files + text_files)
 
+    pairs = []
     for text_file in text_files:
         [text_fname, _] = os.path.splitext(text_file)
         for edat_file in edat_files:
@@ -244,14 +254,13 @@ def main(directory, csv_file, param_file):
             if text_fname == edat_fname:
                 pairs.append([text_file, edat_file])
 
-    for pair in pairs:
-        paired_texts.append(pair[0])
+    paired_texts = [pair[0] for pair in pairs]
 
     unpaired_texts = list(set(text_files) - set(paired_texts))
     three_files = []
     pop_idx = []
 
-    # Find text files that correspond to a pair.
+    # Find text files that correspond to a pair for a triad.
     for i, up_text in enumerate(unpaired_texts):
         for j, p_text in enumerate(paired_texts):
             if up_text[:len(up_text)-6] in p_text:
@@ -339,51 +348,40 @@ def main(directory, csv_file, param_file):
         session = all_timepoints[i]
         timepoint_string = param_dict.get('timepoints').get(session)
         files_note = note_dict.get(all_notetype[i])
-        if len(all_subjects) > 4:
-            try:
-                print('Successfully organized {0}-{1}'.format(subj, timepoint_string))
-                print('Moved:')
-                files = all_file_sets[i]
-                note = _organize_files(subj, timepoint_string, files, organized_dir)
-                note += files_note
-                organized = True
-                organized_when = time.strftime('%Y/%m/%d')
-                organized_by = 'PY'
-            except IOError:
-                print('{0}-{1} couldn\'t be organized.'.format(subj, session))
-                note = files_note
-                organized = False
-                organized_when = ''
-                organized_by = ''
-
-            try:
-                if all_notetype[i] == 'pair':
-                    print('Successfully converted {0}-{1}'.format(subj, session))
-                    converted = True
-                    converted_when = time.strftime('%Y/%m/%d')
-                    converted_by = 'PY'
-                else:
-                    print('{0}-{1} couldn\'t be converted.'.format(subj, session))
-                    converted = False
-                    converted_when = ''
-                    converted_by = ''
-            except IOError:
-                print('{0}-{1} couldn\'t be converted.'.format(subj, session))
-                converted = False
-                converted_when = ''
-                converted_by = ''
-        else:
-            print('{0}-{1} couldn\'t be organized.'.format(subj, session))
+        files = all_file_sets[i]
+        print('Processing {0}- {1}'.format(subj, timepoint_string))
+        try:
+            note = _organize_files(subj, timepoint_string, files, organized_dir)
+            note += files_note
+            organized = True
+            organized_when = time.strftime('%Y/%m/%d')
+            organized_by = 'PY'
+            print('\tSuccessfully organized')
+        except IOError:
             note = files_note
             organized = False
             organized_when = ''
             organized_by = ''
-            print('{0}-{1} couldn\'t be converted.'.format(subj, session))
+            print('\tCouldn\'t be organized.')
+
+        try:
+            if all_notetype[i] == 'pair':
+                converted = True
+                converted_when = time.strftime('%Y/%m/%d')
+                converted_by = 'PY'
+                print('\tSuccessfully converted')
+            else:
+                converted = False
+                converted_when = ''
+                converted_by = ''
+                print('\tCouldn\'t be converted.')
+        except IOError:
             converted = False
             converted_when = ''
             converted_by = ''
+            print('\tCouldn\'t be converted.')
 
-        df = _add_subject(df, subj, session,
+        df = _add_subject(df, subj, timepoint_string,
                           organized, organized_when, organized_by,
                           converted, converted_when, converted_by, note)
 

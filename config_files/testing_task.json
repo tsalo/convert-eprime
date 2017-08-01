@@ -1,0 +1,12 @@
+{
+    "headers": [],
+    "merge_cols": {},
+    "null_cols": [],
+    "org_dir": "../convert_eprime/tests/data/organized_files/",
+    "rem_nulls": false,
+    "replace_dict": {},
+    "timepoints": {
+        "1": "pre",
+        "2": "post"
+    }
+}
