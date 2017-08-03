@@ -7,6 +7,7 @@ text (two text files).
 Somewhat functional, but barely readable, as of 150209.
 """
 from __future__ import print_function
+from builtins import range
 import re
 import os
 from os.path import isfile
@@ -274,7 +275,7 @@ def main(directory, csv_file, param_file):
     # three_files is the text files and edats that form a triad (one edat, two
     # similarly named text files).
     for triad in three_files:
-        for i_pair in reversed(range(len(pairs))):
+        for i_pair in reversed(list(range(len(pairs)))):
             if triad[0:2] == pairs[i_pair]:
                 pairs.pop(i_pair)
 

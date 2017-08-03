@@ -20,6 +20,7 @@ useable csv format.
 command line usage: python convert_eprime.py [function_name] [inputs]
 """
 from __future__ import print_function
+from builtins import range
 import os
 import sys
 import json
@@ -68,7 +69,7 @@ def etext_to_rcsv(in_file, param_file, out_file=None):
     filename, suffix = os.path.splitext(in_file)
     if suffix == '.txt':
         # Remove first three lines of exported E-Prime tab-delimited text file.
-        rem_lines = range(3)
+        rem_lines = list(range(3))
         delimiter_ = '\t'
     elif suffix == '.csv':
         # Remove no lines of comma-delimited csv file.
@@ -168,7 +169,7 @@ def text_to_rcsv(text_file, edat_file, param_file, out_file):
 
     # Merge columns
     merge_cols = param_dict.get('merge_cols')
-    for col in merge_cols.keys():
+    for col in list(merge_cols.keys()):
         df[col] = df[merge_cols[col]].fillna('').sum(axis=1)
 
     # Drop NaNs based on specific columns
