@@ -84,7 +84,7 @@ def etext_to_rcsv(in_file, param_file, out_file=None):
     df = df[header_list]
 
     if param_dict['rem_nulls']:
-        df = df.dropna(axis=0)
+        df = df.dropna(axis=0, how='all')
 
     if out_file is None:
         out_file = filename + '.csv'
@@ -173,7 +173,7 @@ def text_to_rcsv(text_file, edat_file, param_file, out_file):
         df[col] = df[merge_cols[col]].fillna('').sum(axis=1)
 
     # Drop NaNs based on specific columns
-    df = df.dropna(subset=param_dict.get('null_cols'))
+    df = df.dropna(subset=param_dict.get('null_cols'), how='all')
 
     # Reduce DataFrame to desired columns
     header_list = param_dict.get('headers')

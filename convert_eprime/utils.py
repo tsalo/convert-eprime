@@ -18,6 +18,5 @@ def remove_unicode(string):
     -------
     str
         Input string, minus unicode characters.
-    
     """
     return ''.join([val for val in string if 31 < ord(val) < 127])
