@@ -7,7 +7,7 @@ I am not currently working on this package, but if you see a bug or have an idea
 
 
 ## Code
-- [**index_eprime_files.py**](convert_eprime/index_eprime_files.py): Looks through a folder and finds pairs of edat/txt files (successful runs) and all other combinations of the two filetypes. It notes these other files as requiring individual attention. Eventually it will call `convert` to automatically convert the text files in pairs. **Does not current work properly!**
+- [**index_eprime_files.py**](convert_eprime/index_eprime_files.py): Looks through a folder and finds pairs of edat/txt files (successful runs) and all other combinations of the two filetypes. It notes these other files as requiring individual attention. Eventually it will call `convert` to automatically convert the text files in pairs. **Does not currently work properly!**
 - [**convert.py**](convert_eprime/convert.py): A set of three functions to convert E-Prime files into a more manageable csv format. The functions:
   1.  etext_to_rcsv: Converts exported "E-Prime text" file to reduced csv based on desired column headers. Make sure, when exporting the edat file as "E-Prime text", that Unicode is turned off.
   2.  text_to_csv: Converts text file produced by successful completion of E-Prime experiment to csv. Output from text_to_csv can be used to deduce information necessary for `text_to_rcsv` (e.g. columns to merge, columns to rename, etc.). These variables would then be saved in a task-specific json file. Alternatively, if you plan to work directly from the text files, then you probably won't need to rename columns.
