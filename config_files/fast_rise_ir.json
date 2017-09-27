@@ -1,0 +1,43 @@
+{
+    "headers": [
+        "CNTRACSID", 
+        "SessionDate", 
+        "SessionTime", 
+        "Stimulus", 
+        "StimType", 
+        "StimuliAACC", 
+        "StimuliACRESP", 
+        "StimuliAOnsetTime", 
+        "StimuliARESP", 
+        "StimuliART", 
+        "StimuliBACC", 
+        "StimuliBCRESP", 
+        "StimuliBOnsetTime", 
+        "StimuliBRESP", 
+        "StimuliBRT"
+    ], 
+    "merge_cols": {
+        "Trial": [
+            "ItemsA", 
+            "ItemsB"
+        ]
+    }, 
+    "null_cols": [
+        "StimType"
+    ], 
+    "rem_nulls": true, 
+    "replace_dict": {
+        ".edat2": {
+            "StimuliA.ACC": "StimuliAACC", 
+            "StimuliA.CRESP": "StimuliACRESP", 
+            "StimuliA.OnsetTime": "StimuliAOnsetTime", 
+            "StimuliA.RESP": "StimuliARESP", 
+            "StimuliA.RT": "StimuliART", 
+            "StimuliB.ACC": "StimuliBACC", 
+            "StimuliB.CRESP": "StimuliBCRESP", 
+            "StimuliB.OnsetTime": "StimuliBOnsetTime", 
+            "StimuliB.RESP": "StimuliBRESP", 
+            "StimuliB.RT": "StimuliBRT"
+        }
+    }
+}

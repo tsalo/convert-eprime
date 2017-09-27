@@ -1,0 +1,25 @@
+{
+    "headers": [
+        "Subject", 
+        "Group", 
+        "ExperimentName", 
+        "Session", 
+        "Age", 
+        "Handedness", 
+        "Sex", 
+        "BlockList", 
+        "Cue.RT", 
+        "Cue.ACC", 
+        "Probe.RT", 
+        "Probe.ACC", 
+        "TrialType", 
+        "Cue.OnsetTime", 
+        "Probe.OnsetTime", 
+        "Cue", 
+        "SessionDate"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [], 
+    "rem_nulls": true, 
+    "replace_dict": {}
+}

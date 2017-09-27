@@ -1,0 +1,17 @@
+{
+    "headers": [
+        "Subject", 
+        "Session", 
+        "Group", 
+        "Block", 
+        "Trial", 
+        "CellLabel", 
+        "StroopStimulus.ACC", 
+        "StroopStimulus.OnsetTime", 
+        "StroopStimulus.RT"
+    ], 
+    "merge_cols": {}, 
+    "null_cols": [], 
+    "rem_nulls": true, 
+    "replace_dict": {}
+}
