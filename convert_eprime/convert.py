@@ -26,8 +26,8 @@ import sys
 import json
 import inspect
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from .utils import remove_unicode
 
@@ -189,11 +189,11 @@ def _text_to_df(text_file):
     Convert a raw E-Prime output text file into a pandas DataFrame.
     """
     # Load the text file as a list.
-    with open(text_file, 'r') as fo:
+    with open(text_file, 'rb') as fo:
         text_data = list(fo)
 
     # Remove unicode characters.
-    filtered_data = [remove_unicode(row) for row in text_data]
+    filtered_data = [remove_unicode(row.decode('utf-8', 'ignore')) for row in text_data]
 
     # Determine where rows begin and end.
     start_index = [i for i, row in enumerate(filtered_data) if row == '*** LogFrame Start ***']
