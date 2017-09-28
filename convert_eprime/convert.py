@@ -25,6 +25,7 @@ import os
 import sys
 import json
 import inspect
+from collections import OrderedDict
 
 import pandas as pd
 import numpy as np
@@ -212,7 +213,7 @@ def _text_to_df(text_file):
             split_header_idx = col_val.index(':')
             headers.append(col_val[:split_header_idx])
 
-    headers = list(set(headers))
+    headers = list(OrderedDict.fromkeys(headers))
 
     # Preallocate list of lists composed of NULLs.
     data_matrix = np.empty((n_rows, len(headers)), dtype=object)
