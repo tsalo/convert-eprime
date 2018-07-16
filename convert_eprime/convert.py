@@ -229,11 +229,11 @@ def _text_to_df(text_file):
 
     df = pd.DataFrame(columns=headers, data=data_matrix)
 
-    # Columns with one value at the end (or end - 1) should be filled with
-    # that value.
+    # Columns with one value at the beginning, the end, or end - 1 should be
+    # filled with that value.
     for col in df.columns:
         non_nan_idx = np.where(df[col].values == df[col].values)[0]
-        if len(non_nan_idx) == 1 and non_nan_idx[0] in [df.shape[0]-1,
+        if len(non_nan_idx) == 1 and non_nan_idx[0] in [0, df.shape[0]-1,
                                                         df.shape[0]-2]:
             df.loc[:, col] = df.loc[non_nan_idx[0], col]
     return df
