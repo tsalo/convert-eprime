@@ -174,7 +174,8 @@ def text_to_rcsv(text_file, edat_file, param_file, out_file):
         df[col] = df[merge_cols[col]].fillna('').sum(axis=1)
 
     # Drop NaNs based on specific columns
-    df = df.dropna(subset=param_dict.get('null_cols'), how='all')
+    if param_dict.get('rem_nulls', False):
+        df = df.dropna(subset=param_dict.get('null_cols'), how='all')
 
     # Reduce DataFrame to desired columns
     header_list = param_dict.get('headers')
