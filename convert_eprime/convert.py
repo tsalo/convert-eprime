@@ -206,8 +206,8 @@ def _text_to_df(text_file):
         # In cases of an experiment crash, the final LogFrame is never written, and the experiment metadata
         # (Subject, VersionNumber, etc.) isn't collected by the indices above. We can manually include the
         # metadata-containing Header Frame to collect these data from a partial-run crash dump.
-        start_index += [i for i,row in enumerate(filtered_data) if row == '*** Header Start ***']
-        end_index += [i for i,row in enumerate(filtered_data) if row == '*** Header End ***']
+        start_index = [i for i,row in enumerate(filtered_data) if row == '*** Header Start ***'] + start_index
+        end_index = [i for i,row in enumerate(filtered_data) if row == '*** Header End ***'] + end_index
     n_rows = min(len(start_index), len(end_index))
 
     # Find column headers and remove duplicates.
