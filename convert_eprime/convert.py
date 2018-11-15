@@ -202,7 +202,7 @@ def _text_to_df(text_file):
     end_index = [i for i, row in enumerate(filtered_data) if row == '*** LogFrame End ***']
     if len(start_index) != len(end_index) or start_index[0] >= end_index[0]:
         print('Warning: LogFrame Starts and Ends do not match up.',
-              'Including eader metadata just in case.')
+              'Including header metadata just in case.')
         # In cases of an experiment crash, the final LogFrame is never written, and the experiment metadata
         # (Subject, VersionNumber, etc.) isn't collected by the indices above. We can manually include the
         # metadata-containing Header Frame to collect these data from a partial-run crash dump.
