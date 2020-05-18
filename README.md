@@ -1,6 +1,7 @@
 convert-eprime
 ==============
 
+[![DOI](https://zenodo.org/badge/22659183.svg)](https://zenodo.org/badge/latestdoi/22659183)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TravisCI](https://travis-ci.org/tsalo/convert-eprime.svg?branch=master)](https://travis-ci.org/tsalo/convert-eprime)
 
