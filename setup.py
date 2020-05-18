@@ -22,7 +22,8 @@ config = {
     'version': __version__,
     'install_requires': requirements,
     'packages': ['convert_eprime'],
-    'name': 'convert_eprime'
+    'name': 'convert_eprime',
+    'entry_points': {'console_scripts': ['convert_eprime=convert_eprime.cli:_main']}
 }
 
 setup(**config)

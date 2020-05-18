@@ -46,10 +46,8 @@ def etext_to_rcsv(in_file, param_file, out_file=None):
     ----------
     in_file : str
         Exported E-Prime text file to convert and reduce.
-
     param_file : str
         A json file with relevant task-specific parameters.
-
     out_file : str
         Name of output file (csv format) to generate. If not set, then a file
         will be written out with the same name as the input file, but with a csv
@@ -105,7 +103,6 @@ def text_to_csv(text_file, out_file):
     ----------
     text_file : str
         Raw E-Prime text file to convert.
-
     out_file : str
         Name of output file (csv format) to generate.
 
@@ -133,15 +130,12 @@ def text_to_rcsv(text_file, edat_file, param_file, out_file):
     ----------
     text_file : str
         Raw E-Prime text file to convert.
-
     edat_file : str
         Raw E-Prime edat file paired with text_file. Only used for its file
         type, because sometimes files will differ between version of E-Prime
         (edat vs. edat2 suffix).
-
     param_file : str
         A json file with relevant task-specific parameters.
-
     out_file : str
         Name of output file (csv format) to generate.
 
@@ -244,25 +238,3 @@ def _text_to_df(text_file):
                                                         df.shape[0]-2]:
             df.loc[:, col] = df.loc[non_nan_idx[0], col]
     return df
-
-
-if __name__ == '__main__':
-    """
-    If called from the command line, the desired function should be the first
-    argument.
-    """
-    function_name = sys.argv[1]
-    MODULE_FUNCTIONS = [name for name, obj in inspect.getmembers(sys.modules[__name__])
-                        if inspect.isfunction(obj) and not name.startswith('_')]
-
-    if function_name not in MODULE_FUNCTIONS:
-        raise IOError('Function {0} not in convert_eprime.'.format(function_name))
-
-    function = globals()[function_name]
-    n_args = len(inspect.getargspec(function).args)
-
-    if n_args != len(sys.argv) - 2:
-        raise IOError('Function {0} takes {1} args, not {2}.'.format(function_name,
-                                                                     n_args, len(sys.argv)-2))
-
-    function(*sys.argv[2:])
