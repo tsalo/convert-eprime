@@ -1,6 +1,9 @@
 convert-eprime
 ==============
 
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TravisCI](https://travis-ci.org/tsalo/convert-eprime.svg?branch=master)](https://travis-ci.org/tsalo/convert-eprime)
+
 Python code to convert E-Prime files to csv-format spreadsheets for analysis. With the exception of `text_to_csv`, most of the functionality of this package is implemented very easily with [pandas](http://pandas.pydata.org).
 
 I am not currently working on this package, but if you see a bug or have an idea for an improvement, please open an issue and I will address it as soon as I can. Pull Requests are also welcome.
